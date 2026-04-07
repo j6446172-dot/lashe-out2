@@ -2,32 +2,29 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * الحقول المسموح بتعبئتها (Mass Assignable)
+     * أضفنا الـ role والـ phone والـ loyalty_points بناءً على الـ SRS
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'phone',          
+        'role',           
+        'loyalty_points', 
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
+     * الحقول المخفية التي لا تظهر عند تحويل الموديل لـ JSON
      */
     protected $hidden = [
         'password',
@@ -35,9 +32,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * تحويل أنواع البيانات (Casting)
      */
     protected function casts(): array
     {

@@ -17,6 +17,20 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // --- التعديلات الخاصة بمشروع Lashe Out ---
+            
+            // تحديد دور المستخدم (Owner, Staff, Customer) [cite: 5]
+            $table->enum('role', ['customer', 'staff', 'owner'])->default('customer');
+            
+            // نظام نقاط الولاء للعملاء [cite: 13, 30]
+            $table->integer('loyalty_points')->default(0); 
+            
+            // رقم الهاتف (ضروري للتواصل بخصوص المواعيد)
+            $table->string('phone')->nullable(); 
+            
+            // ------------------------------------------
+
             $table->rememberToken();
             $table->timestamps();
         });
