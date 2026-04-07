@@ -28,7 +28,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // --- التعديل الخاص بتوجيه المستخدم حسب الدور (Role-Based Redirect) ---
+        
+        $userRole = Auth::user()->role;
+
+        return match ($userRole) {
+            'owner'    => redirect()->intended(route('owner.dashboard')),
+            'staff'    => redirect()->intended(route('staff.dashboard')),
+            'customer' => redirect()->intended(route('dashboard')), // لوحة الزبائن الافتراضية
+            default    => redirect()->intended(route('dashboard')),
+        };
+        
+        // ------------------------------------------------------------------
     }
 
     /**

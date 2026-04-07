@@ -11,7 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        
+        // تسجيل الـ Middleware الخاص بالأدوار (Role Manager)
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleManager::class,
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

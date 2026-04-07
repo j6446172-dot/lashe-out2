@@ -1,30 +1,29 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
+    <div style="text-align: center; margin-bottom: 25px; font-family: 'Tajawal', sans-serif;" dir="rtl">
+        <h2 style="color: #ec4899; font-weight: 800; font-size: 1.7rem; margin-bottom: 15px;">تأكيد البريد الإلكتروني ✨</h2>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+            شكراً لانضمامك إلينا! قبل البدء، هل يمكنكِ تأكيد بريدكِ الإلكتروني من خلال الضغط على الرابط الذي أرسلناه لكِ للتو؟ إذا لم يصلكِ البريد، سنرسل لكِ واحداً آخر بكل سرور.
+        </p>
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+        <div style="margin-bottom: 20px; font-size: 0.85rem; color: #10b981; text-align: center; font-weight: bold;">
+            تم إرسال رابط تأكيد جديد إلى بريدكِ الإلكتروني.
         </div>
     @endif
 
-    <div class="mt-4 flex items-center justify-between">
-        <form method="POST" action="{{ route('verification.send') }}">
+    <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 25px; font-family: 'Tajawal', sans-serif;">
+        <form method="POST" action="{{ route('verification.send') }}" style="width: 100%;">
             @csrf
-
-            <div>
-                <x-primary-button>
-                    {{ __('Resend Verification Email') }}
-                </x-primary-button>
-            </div>
+            <button type="submit" class="w-full py-4 rounded-2xl font-bold text-white shadow-lg" style="background: linear-gradient(to left, #ec4899, #f472b6); border: none; cursor: pointer;">
+                إعادة إرسال رابط التأكيد 📧
+            </button>
         </form>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-
-            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                {{ __('Log Out') }}
+            <button type="submit" style="color: #888; text-decoration: underline; font-size: 0.9rem; background: none; border: none; cursor: pointer;">
+                تسجيل الخروج
             </button>
         </form>
     </div>
