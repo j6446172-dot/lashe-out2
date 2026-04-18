@@ -1,100 +1,91 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
+<nav class="shadow-md border-b sticky top-0 z-50" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border-color: rgba(176, 141, 87, 0.2);">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+        <div class="flex justify-between items-center h-16">
+            
+            {{-- Logo --}}
+            <div class="shrink-0 flex items-center">
+                <a href="{{ route('customer.dashboard') }}" class="text-2xl font-black tracking-tighter" style="color: #B08D57;">
+                    LASHE OUT ✨
+                </a>
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+            {{-- Desktop Navigation --}}
+            <div class="hidden md:flex items-center gap-6">
+                <a href="{{ route('customer.dashboard') }}" class="font-bold transition hover:opacity-70" style="color: #7C8574;">
+                    الرئيسية
+                </a>
+                <a href="{{ route('customer.bookings.index') }}" class="font-bold transition hover:opacity-70" style="color: #7C8574;">
+                    حجوزاتي
+                </a>
+                <a href="{{ route('customer.reviews.index') }}" class="font-bold transition hover:opacity-70" style="color: #7C8574;">
+                    تقييماتي
+                </a>
+            </div>
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
+            {{-- User Menu with Alpine.js --}}
+            <div class="flex items-center gap-4">
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 font-bold transition focus:outline-none" style="color: #2B1E1A;">
+                        <i class="fas fa-user-circle text-2xl"></i>
+                        <span>{{ Auth::user()->name }}</span>
+                        <i class="fas fa-chevron-down text-sm transition-transform" :class="{'rotate-180': open}"></i>
+                    </button>
+                    
+                    <div x-show="open" x-cloak class="absolute left-0 mt-2 w-56 rounded-2xl shadow-xl z-50" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.15);">
+                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-3 rounded-t-2xl transition" style="color: #2B1E1A;">
+                            <i class="fas fa-user w-5" style="color: #B08D57;"></i>
+                            <span>ملفي الشخصي</span>
+                        </a>
+                        <div class="border-t" style="border-color: rgba(176, 141, 87, 0.1);"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
+                            <button type="submit" class="flex items-center gap-3 px-4 py-3 rounded-b-2xl transition w-full text-right" style="color: #2B1E1A;">
+                                <i class="fas fa-sign-out-alt w-5" style="color: #B08D57;"></i>
+                                <span>تسجيل خروج</span>
+                            </button>
                         </form>
-                    </x-slot>
-                </x-dropdown>
+                    </div>
+                </div>
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+            {{-- Mobile Menu Button --}}
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="focus:outline-none" style="color: #7C8574;">
+                    <i class="fas fa-bars text-2xl"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
+    {{-- Mobile Menu --}}
+    <div id="mobile-menu" class="hidden md:hidden py-4 px-4" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-top: 1px solid rgba(176, 141, 87, 0.1);">
+        <div class="flex flex-col gap-3">
+            <a href="{{ route('customer.dashboard') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">الرئيسية</a>
+            <a href="{{ route('customer.bookings.index') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">حجوزاتي</a>
+            <a href="{{ route('customer.reviews.index') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">تقييماتي</a>
+            <a href="{{ route('profile.edit') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">ملفي الشخصي</a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full text-right font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">
+                    تسجيل خروج
+                </button>
+            </form>
         </div>
     </div>
 </nav>
+
+<style>
+    [x-cloak] { display: none !important; }
+    .rotate-180 { transform: rotate(180deg); }
+</style>
+
+<script>
+    // Mobile menu toggle
+    const mobileButton = document.getElementById('mobile-menu-button');
+    if (mobileButton) {
+        mobileButton.addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    }
+</script>

@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
     })
+    ->withSchedule(function ($schedule) {
+        $schedule->command('reminder:send')->dailyAt('09:00');
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

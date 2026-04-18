@@ -1,49 +1,97 @@
-<x-guest-layout>
-    <div style="text-align: center; margin-bottom: 25px; font-family: 'Tajawal', sans-serif;">
-        <h2 style="color: #ec4899; font-weight: 800; font-size: 1.8rem; margin-bottom: 5px;">انضمي إلينا ✨</h2>
-        <p style="color: #888; font-size: 0.9rem;">أنشئي حسابكِ للتمتع بكافة خدماتنا</p>
-    </div>
+@extends('layouts.guest')
 
-    <form method="POST" action="{{ route('register') }}" dir="rtl" style="font-family: 'Tajawal', sans-serif;">
-        @csrf
-
-        <div style="margin-bottom: 15px;">
-            <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 5px; text-align: right;">الاسم الكامل</label>
-            <input id="name" class="block w-full px-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:border-pink-300 focus:ring-pink-200 shadow-sm text-right" type="text" name="name" :value="old('name')" required autofocus />
-            <x-input-error :messages="$errors->get('name')" class="mt-1" />
+@section('content')
+<div class="min-h-screen flex items-center justify-center p-6">
+    <div class="glass-card rounded-3xl p-8 w-full max-w-md shadow-xl">
+        
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style="background: rgba(200, 162, 122, 0.15);">
+                <i class="fas fa-user-plus text-3xl" style="color: var(--luxury-brown);"></i>
+            </div>
+            <h2 class="text-2xl font-bold" style="color: var(--luxury-dark);">✨ إنشاء حساب جديد</h2>
+            <p class="text-gray-500 mt-2">انضمي إلينا للتمتع بكافة خدماتنا</p>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 5px; text-align: right;">رقم الهاتف</label>
-            <input id="phone" class="block w-full px-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:border-pink-300 focus:ring-pink-200 shadow-sm text-right" type="text" name="phone" :value="old('phone')" placeholder="07XXXXXXXX" required />
-            <x-input-error :messages="$errors->get('phone')" class="mt-1" />
-        </div>
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-right">
+                <i class="fas fa-exclamation-circle ml-2"></i>
+                <ul class="list-disc list-inside mr-4 mt-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-        <div style="margin-bottom: 15px;">
-            <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 5px; text-align: right;">البريد الإلكتروني</label>
-            <input id="email" class="block w-full px-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:border-pink-300 focus:ring-pink-200 shadow-sm text-right" type="email" name="email" :value="old('email')" required />
-            <x-input-error :messages="$errors->get('email')" class="mt-1" />
-        </div>
+        <form method="POST" action="{{ route('register') }}" dir="rtl">
+            @csrf
 
-        <div style="margin-bottom: 15px;">
-            <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 5px; text-align: right;">كلمة المرور</label>
-            <input id="password" class="block w-full px-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:border-pink-300 focus:ring-pink-200 shadow-sm text-right" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-1" />
-        </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-right" style="color: var(--luxury-dark);">
+                    <i class="fas fa-user ml-1" style="color: var(--luxury-brown);"></i> الاسم الكامل
+                </label>
+                <input type="text" name="name" value="{{ old('name') }}" 
+                    class="w-full px-4 py-3 rounded-xl text-right bg-white/80 border border-[#C8A27A]/30 focus:border-[#C8A27A] focus:outline-none focus:ring-2 focus:ring-[#C8A27A]/30"
+                    placeholder="الاسم الكامل" required>
+            </div>
 
-        <div style="margin-bottom: 20px;">
-            <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 5px; text-align: right;">تأكيد كلمة المرور</label>
-            <input id="password_confirmation" class="block w-full px-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:border-pink-300 focus:ring-pink-200 shadow-sm text-right" type="password" name="password_confirmation" required />
-        </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-right" style="color: var(--luxury-dark);">
+                    <i class="fab fa-whatsapp ml-1" style="color: var(--luxury-brown);"></i> رقم الهاتف
+                </label>
+                <input type="tel" name="phone" value="{{ old('phone') }}" 
+                    class="w-full px-4 py-3 rounded-xl text-right bg-white/80 border border-[#C8A27A]/30 focus:border-[#C8A27A] focus:outline-none focus:ring-2 focus:ring-[#C8A27A]/30"
+                    placeholder="079XXXXXXXX" required>
+                <p class="text-gray-400 text-xs mt-2 text-right">سنرسل لك إشعارات الحجز على هذا الرقم</p>
+            </div>
 
-        <button type="submit" class="w-full py-4 rounded-2xl font-bold text-white shadow-lg" style="background: linear-gradient(to left, #ec4899, #f472b6); border: none; cursor: pointer;">
-            إنشاء حساب 💖
-        </button>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-right" style="color: var(--luxury-dark);">
+                    <i class="fas fa-envelope ml-1" style="color: var(--luxury-brown);"></i> البريد الإلكتروني
+                </label>
+                <input type="email" name="email" value="{{ old('email') }}" 
+                    class="w-full px-4 py-3 rounded-xl text-right bg-white/80 border border-[#C8A27A]/30 focus:border-[#C8A27A] focus:outline-none focus:ring-2 focus:ring-[#C8A27A]/30"
+                    placeholder="example@mail.com" required>
+            </div>
 
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="{{ route('login') }}" style="color: #ec4899; text-decoration: none; font-size: 0.9rem; font-weight: 700;">
-                لديكِ حساب بالفعل؟ تسجيل دخول
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-right" style="color: var(--luxury-dark);">
+                    <i class="fas fa-lock ml-1" style="color: var(--luxury-brown);"></i> كلمة المرور
+                </label>
+                <input type="password" name="password" 
+                    class="w-full px-4 py-3 rounded-xl text-right bg-white/80 border border-[#C8A27A]/30 focus:border-[#C8A27A] focus:outline-none focus:ring-2 focus:ring-[#C8A27A]/30"
+                    placeholder="كلمة المرور" required>
+            </div>
+
+            <div class="mb-6">
+                <label class="block font-bold mb-2 text-right" style="color: var(--luxury-dark);">
+                    <i class="fas fa-lock ml-1" style="color: var(--luxury-brown);"></i> تأكيد كلمة المرور
+                </label>
+                <input type="password" name="password_confirmation" 
+                    class="w-full px-4 py-3 rounded-xl text-right bg-white/80 border border-[#C8A27A]/30 focus:border-[#C8A27A] focus:outline-none focus:ring-2 focus:ring-[#C8A27A]/30"
+                    placeholder="تأكيد كلمة المرور" required>
+            </div>
+
+            <button type="submit" class="btn-luxury w-full text-white font-bold py-3 rounded-xl transition shadow-md shadow-[#C8A27A]/30">
+                <i class="fas fa-user-plus ml-2"></i> إنشاء حساب
+            </button>
+
+            <div class="text-center mt-6">
+                <p class="text-gray-500">
+                    لديك حساب بالفعل؟
+                    <a href="{{ route('login') }}" class="font-bold transition hover:opacity-70" style="color: var(--luxury-brown);">
+                        تسجيل دخول
+                    </a>
+                </p>
+            </div>
+        </form>
+
+        <div class="text-center mt-6 pt-4 border-t" style="border-color: rgba(200, 162, 122, 0.2);">
+            <a href="/" class="text-sm transition hover:opacity-70" style="color: var(--luxury-dark);">
+                <i class="fas fa-arrow-right ml-1"></i> العودة إلى الصفحة الرئيسية
             </a>
         </div>
-    </form>
-</x-guest-layout>
+
+    </div>
+</div>
+@endsection
