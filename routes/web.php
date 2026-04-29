@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\QueueController;
 use App\Http\Controllers\Customer\ReviewController;
@@ -10,6 +10,16 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+// صفحة تسجيل دخول المالك
+Route::get('/owner/login', function () {
+    return view('auth.login');
+})->name('owner.login');
+
+
+Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\OwnerController::class, 'dashboard'])->name('dashboard');
+});
+
 
 // ========== الصفحات العامة ==========
 Route::get('/', function () {
@@ -17,7 +27,6 @@ Route::get('/', function () {
 })->name('home');
 
 Route::view('/booking', 'auth.register')->name('booking.form');
-
 // ========== مسارات المصادقة (Auth) ==========
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
@@ -44,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
             'current_password' => 'required',
             'password' => 'required|min:8|confirmed',
         ]);
+    
         $user = auth()->user();
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
@@ -183,6 +193,30 @@ Route::middleware(['auth'])->get('/staff/ratings', function () {
     return response()->json($data);
 })->name('staff.ratings');
 
+// ========== مسارات المالك (Owner) ==========
+Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
+    Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/bookings', [OwnerController::class, 'bookings'])->name('bookings');
+    Route::get('/booking-detail/{id}', [OwnerController::class, 'bookingDetail'])->name('booking.detail');
+    Route::get('/staff', [OwnerController::class, 'staff'])->name('staff');
+    Route::get('/finance', [OwnerController::class, 'finance'])->name('finance');
+    Route::post('/verify-finance-login', [OwnerController::class, 'verifyFinanceLogin'])->name('verify-finance-login');
+    Route::post('/update-finance-password', [OwnerController::class, 'updateFinancePassword'])->name('update-finance-password');
+    Route::post('/verify-finance-password', [OwnerController::class, 'verifyFinancePassword'])->name('verify-finance-password');
+    Route::get('/staff-detail/{id}', [OwnerController::class, 'staffDetail'])->name('staff.detail');
+    Route::post('/staff/add', [OwnerController::class, 'addStaff']);
+    Route::post('/staff/update/{id}', [OwnerController::class, 'updateStaff']);
+    Route::post('/staff/delete/{id}', [OwnerController::class, 'deleteStaff']);
+    Route::get('/staff/schedule/{id}', [OwnerController::class, 'staffSchedule']);
+    Route::get('/customers', [OwnerController::class, 'customers'])->name('customers');
+    Route::get('/customer-detail/{id}', [OwnerController::class, 'customerDetail']);
+    Route::get('/schedule', [OwnerController::class, 'schedule'])->name('schedule');
+    Route::post('/save-finance', [OwnerController::class, 'saveFinance'])->name('saveFinance');
+    Route::post('/schedule/updateSalon', [OwnerController::class, 'updateSalonSchedule'])->name('schedule.updateSalon');
+    Route::get('/staff-schedule/{id}', [OwnerController::class, 'getStaffSchedule']);
+    Route::post('/staff-schedule/save', [OwnerController::class, 'saveStaffSchedule']);
+    Route::get('/reviews', [OwnerController::class, 'reviews'])->name('reviews');
+});
 // ========== مسارات لوحة التحكم العامة ==========
 Route::middleware(['auth'])->get('/dashboard', function () {
     $user = auth()->user();

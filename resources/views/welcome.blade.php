@@ -290,7 +290,7 @@
                     </a>
                 </div>
                 
-                <p class="text-gray-400 text-sm">© 2026 <span style="color: var(--luxury-brown);">LASHE OUT</span> STUDIO</p>
+                <p class="text-gray-400 text-sm">©️ 2026 <span style="color: var(--luxury-brown);">LASHE OUT</span> STUDIO</p>
                 <p class="text-gray-400 text-xs mt-1">عمان، الأردن</p>
             </div>
         </footer>

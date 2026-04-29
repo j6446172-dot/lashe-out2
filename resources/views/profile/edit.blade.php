@@ -163,6 +163,43 @@
                 </div>
             </div>
 
+@if(auth()->user()->role === 'owner')
+<div class="rounded-2xl overflow-hidden mt-6" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.2);">
+    <div class="border-b px-6 py-4" style="border-color: rgba(176, 141, 87, 0.1);">
+        <h2 class="text-xl font-bold flex items-center gap-2" style="color: #2B1E1A;">
+            <i class="fas fa-lock" style="color: #B08D57;"></i> كلمة المرور المالية
+        </h2>
+    </div>
+    <div class="p-6">
+        <p class="text-right mb-4" style="color: #7C8574;">تستخدم للوصول إلى التقارير المالية الحساسة</p>
+        
+        <form method="POST" action="{{ route('owner.update-finance-password') }}" class="space-y-5">
+            @csrf
+            <div>
+                <label class="block font-bold mb-2 text-right" style="color: #2B1E1A;">كلمة المرور الجديدة</label>
+                <input type="password" name="finance_password" required
+                       class="w-full px-4 py-3 rounded-xl text-right" 
+                       style="background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(176, 141, 87, 0.3);">
+            </div>
+            <div>
+                <label class="block font-bold mb-2 text-right" style="color: #2B1E1A;">تأكيد كلمة المرور</label>
+                <input type="password" name="finance_password_confirmation" required
+                       class="w-full px-4 py-3 rounded-xl text-right" 
+                       style="background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(176, 141, 87, 0.3);">
+            </div>
+            <button type="submit" class="font-bold py-3 px-6 rounded-xl transition hover:shadow-lg" style="background: #B08D57; color: #F3EDE6;">
+                <i class="fas fa-save ml-2"></i> حفظ
+            </button>
+            
+            @if(auth()->user()->finance_password)
+                <span style="color: #10b981; margin-right: 10px;">✅ مفعلة</span>
+            @else
+                <span style="color: #f59e0b; margin-right: 10px;">⚠️ لم تضبط بعد</span>
+            @endif
+        </form>
+    </div>
+</div>
+@endif
             {{-- قسم حذف الحساب --}}
             <div class="rounded-2xl overflow-hidden mt-6" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(220, 38, 38, 0.2);">
                 <div class="border-b px-6 py-4" style="border-color: rgba(220, 38, 38, 0.1); background: rgba(220, 38, 38, 0.05);">
