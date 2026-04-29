@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Review;
 
-class BookingController extends Controller
+class BookingoController extends Controller
 {
     /**
      * 📅 صفحة الحجوزات
