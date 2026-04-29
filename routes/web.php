@@ -194,28 +194,35 @@ Route::middleware(['auth'])->get('/staff/ratings', function () {
 })->name('staff.ratings');
 
 // ========== مسارات المالك (Owner) ==========
+use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\Owner\BookingoController;
+use App\Http\Controllers\Owner\StaffController;
+use App\Http\Controllers\Owner\FinanceController;
+use App\Http\Controllers\Owner\CustomerController;
+use App\Http\Controllers\Owner\ReviewoController;
+use App\Http\Controllers\Owner\ScheduleController;
+
 Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
-    Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('dashboard');
-    Route::get('/bookings', [OwnerController::class, 'bookings'])->name('bookings');
-    Route::get('/booking-detail/{id}', [OwnerController::class, 'bookingDetail'])->name('booking.detail');
-    Route::get('/staff', [OwnerController::class, 'staff'])->name('staff');
-    Route::get('/finance', [OwnerController::class, 'finance'])->name('finance');
-    Route::post('/verify-finance-login', [OwnerController::class, 'verifyFinanceLogin'])->name('verify-finance-login');
-    Route::post('/update-finance-password', [OwnerController::class, 'updateFinancePassword'])->name('update-finance-password');
-    Route::post('/verify-finance-password', [OwnerController::class, 'verifyFinancePassword'])->name('verify-finance-password');
-    Route::get('/staff-detail/{id}', [OwnerController::class, 'staffDetail'])->name('staff.detail');
-    Route::post('/staff/add', [OwnerController::class, 'addStaff']);
-    Route::post('/staff/update/{id}', [OwnerController::class, 'updateStaff']);
-    Route::post('/staff/delete/{id}', [OwnerController::class, 'deleteStaff']);
-    Route::get('/staff/schedule/{id}', [OwnerController::class, 'staffSchedule']);
-    Route::get('/customers', [OwnerController::class, 'customers'])->name('customers');
-    Route::get('/customer-detail/{id}', [OwnerController::class, 'customerDetail']);
-    Route::get('/schedule', [OwnerController::class, 'schedule'])->name('schedule');
-    Route::post('/save-finance', [OwnerController::class, 'saveFinance'])->name('saveFinance');
-    Route::post('/schedule/updateSalon', [OwnerController::class, 'updateSalonSchedule'])->name('schedule.updateSalon');
-    Route::get('/staff-schedule/{id}', [OwnerController::class, 'getStaffSchedule']);
-    Route::post('/staff-schedule/save', [OwnerController::class, 'saveStaffSchedule']);
-    Route::get('/reviews', [OwnerController::class, 'reviews'])->name('reviews');
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/bookings', [BookingoController::class, 'bookings'])->name('bookings');
+Route::get('/booking-detail/{id}', [BookingoController::class, 'bookingDetail'])->name('booking.detail');
+    Route::get('/staff', [StaffController::class, 'staff'])->name('staff');
+    Route::get('/staff-detail/{id}', [StaffController::class, 'staffDetail'])->name('staff.detail');
+    Route::post('/staff/add', [StaffController::class, 'addStaff']);
+    Route::post('/staff/update/{id}', [StaffController::class, 'updateStaff']);
+    Route::post('/staff/delete/{id}', [StaffController::class, 'deleteStaff']);
+    Route::get('/staff/schedule/{id}', [StaffController::class, 'staffSchedule']);
+    Route::get('/finance', [FinanceController::class, 'finance'])->name('finance');
+    Route::post('/verify-finance-login', [FinanceController::class, 'verifyFinanceLogin'])->name('verify-finance-login');
+    Route::post('/update-finance-password', [FinanceController::class, 'updateFinancePassword'])->name('update-finance-password');
+    Route::post('/save-finance', [FinanceController::class, 'saveFinance'])->name('saveFinance');
+    Route::get('/customers', [CustomerController::class, 'customers'])->name('customers');
+    Route::get('/customer-detail/{id}', [CustomerController::class, 'customerDetail']);
+    Route::get('/reviews', [ReviewoController::class, 'reviews'])->name('reviews');
+    Route::get('/schedule', [ScheduleController::class, 'schedule'])->name('schedule');
+    Route::post('/schedule/updateSalon', [ScheduleController::class, 'updateSalonSchedule'])->name('schedule.updateSalon');
+    Route::get('/staff-schedule/{id}', [ScheduleController::class, 'getStaffSchedule']);
+    Route::post('/staff-schedule/save', [ScheduleController::class, 'saveStaffSchedule']);
 });
 // ========== مسارات لوحة التحكم العامة ==========
 Route::middleware(['auth'])->get('/dashboard', function () {
