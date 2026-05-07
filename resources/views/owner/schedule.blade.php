@@ -53,7 +53,7 @@
                                     <th class="p-3">الحالة</th>
                                     <th class="p-3">البداية</th>
                                     <th class="p-3">النهاية</th>
-                                </tr>
+                                </td>
                             </thead>
                             <tbody>
                                 @php $days = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة']; @endphp
@@ -61,8 +61,8 @@
                                 @php
                                     $salonData = \DB::table('salon_schedule')->where('day_of_week', $index)->first();
                                     $isOpen = $salonData ? $salonData->is_open : ($index != 6);
-                                    $startVal = $salonData ? $salonData->start_time : '10:00';
-                                    $endVal = $salonData ? $salonData->end_time : '18:00';
+                                    $startVal = ($salonData && isset($salonData->start_time)) ? $salonData->start_time : '10:00';
+                                    $endVal = ($salonData && isset($salonData->end_time)) ? $salonData->end_time : '18:00';
                                 @endphp
                                 <tr style="border-bottom: 1px solid rgba(176, 141, 87, 0.1);">
                                     <td class="p-3 font-bold" style="color: #2B1E1A;">{{ $day }}</td>
@@ -114,7 +114,7 @@
                                                 ->where('day_of_week', $index)
                                                 ->first();
                                         @endphp
-                                        @if($schedule && $schedule->status != 'active')
+                                        @if($schedule && isset($schedule->status) && $schedule->status != 'active')
                                             <span class="text-red-500 text-xs">
                                                 @if($schedule->status == 'annual') 🔴 سنوية
                                                 @elseif($schedule->status == 'sick') 🤒 مرضية
@@ -127,7 +127,11 @@
                                                 @endif
                                             </span>
                                         @else
-                                            <span class="text-green-600 text-xs">🟢 {{ $schedule->start_time ?? '10:00' }}-{{ $schedule->end_time ?? '18:00' }}</span>
+                                            @php
+                                                $startTime = ($schedule && isset($schedule->start_time)) ? $schedule->start_time : '10:00';
+                                                $endTime = ($schedule && isset($schedule->end_time)) ? $schedule->end_time : '18:00';
+                                            @endphp
+                                            <span class="text-green-600 text-xs">🟢 {{ $startTime }}-{{ $endTime }}</span>
                                         @endif
                                     </td>
                                     @endforeach

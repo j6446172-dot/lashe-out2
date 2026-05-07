@@ -14,30 +14,36 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. إنشاء حساب صاحبة الستوديو (Owner)
-        User::create([
-            'name' => 'owner',
-            'email' => 'owner@test.com',
-            'password' => Hash::make('123456789'), // كلمة السر الجديدة
-            'role' => 'owner',
-            'loyalty_points' => 0,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'owner@test.com'],
+            [
+                'name' => 'owner',
+                'password' => Hash::make('123'),
+                'role' => 'owner',
+                'loyalty_points' => 0,
+            ]
+        );
 
         // 2. إنشاء حساب الموظفة (Staff)
-        User::create([
-            'name' => 'staff',
-            'email' => 'staff@test.com',
-            'password' => Hash::make('123456789'),
-            'role' => 'staff',
-            'loyalty_points' => 0,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'staff@test.com'],
+            [
+                'name' => 'staff',
+                'password' => Hash::make('123'),
+                'role' => 'staff',
+                'loyalty_points' => 0,
+            ]
+        );
 
         // 3. إنشاء حساب زبونة (Customer)
-        User::create([
-            'name' => 'customer',
-            'email' => 'customer@test.com',
-            'password' => Hash::make('123456789'),
-            'role' => 'customer',
-            'loyalty_points' => 0,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'customer@test.com'],
+            [
+                'name' => 'customer',
+                'password' => Hash::make('123'),
+                'role' => 'customer',
+                'loyalty_points' => 0,
+            ]
+        );
     }
 }

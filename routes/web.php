@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\QueueController;
@@ -10,16 +11,16 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 // صفحة تسجيل دخول المالك
 Route::get('/owner/login', function () {
     return view('auth.login');
 })->name('owner.login');
 
-
 Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\OwnerController::class, 'dashboard'])->name('dashboard');
 });
-
 
 // ========== الصفحات العامة ==========
 Route::get('/', function () {
@@ -27,6 +28,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::view('/booking', 'auth.register')->name('booking.form');
+
 // ========== مسارات المصادقة (Auth) ==========
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
@@ -54,7 +56,7 @@ Route::middleware(['auth'])->group(function () {
             'password' => 'required|min:8|confirmed',
         ]);
     
-        $user = auth()->user();
+        $user = $request->user();
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
         }
@@ -205,7 +207,7 @@ use App\Http\Controllers\Owner\ScheduleController;
 Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [BookingoController::class, 'bookings'])->name('bookings');
-Route::get('/booking-detail/{id}', [BookingoController::class, 'bookingDetail'])->name('booking.detail');
+    Route::get('/booking-detail/{id}', [BookingoController::class, 'bookingDetail'])->name('booking.detail');
     Route::get('/staff', [StaffController::class, 'staff'])->name('staff');
     Route::get('/staff-detail/{id}', [StaffController::class, 'staffDetail'])->name('staff.detail');
     Route::post('/staff/add', [StaffController::class, 'addStaff']);
@@ -224,9 +226,37 @@ Route::get('/booking-detail/{id}', [BookingoController::class, 'bookingDetail'])
     Route::get('/staff-schedule/{id}', [ScheduleController::class, 'getStaffSchedule']);
     Route::post('/staff-schedule/save', [ScheduleController::class, 'saveStaffSchedule']);
 });
+
+// ========== شات الموظف مع المالك ==========
+Route::middleware(['auth'])->group(function () {
+    Route::get('/chat/owner', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.owner');
+    Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
+    Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::post('/chat/mark-read', [App\Http\Controllers\ChatController::class, 'markAsRead'])->name('chat.mark-read');
+    Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread-count');
+});
+
+
+// ========== شات المالك مع الموظفين ==========
+Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
+    // ... باقي Routes المالك
+    
+    // شات مع موظف معين
+    Route::get('/chat/staff/{staffId}/messages', [App\Http\Controllers\Owner\ChatController::class, 'getStaffMessages'])->name('chat.staff.messages');
+    Route::post('/chat/send', [App\Http\Controllers\Owner\ChatController::class, 'sendToStaff'])->name('chat.send');
+});
+
+// ========== مسارات الموظف (Staff) ==========
+Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/schedule', [App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedule');
+    Route::get('/bookings', [App\Http\Controllers\Staff\BookingController::class, 'index'])->name('bookings');
+    Route::put('/booking/{id}/status', [App\Http\Controllers\Staff\BookingController::class, 'updateStatus'])->name('booking.update-status');
+    Route::get('/my-reviews', [App\Http\Controllers\Staff\ReviewController::class, 'index'])->name('reviews');  // ✅ هذا السطر مهم
+});
 // ========== مسارات لوحة التحكم العامة ==========
-Route::middleware(['auth'])->get('/dashboard', function () {
-    $user = auth()->user();
+Route::middleware(['auth'])->get('/dashboard', function (Request $request) {
+    $user = $request->user();
     if ($user->role === 'customer') {
         return redirect()->route('customer.dashboard');
     } elseif ($user->role === 'staff') {
