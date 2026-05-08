@@ -102,11 +102,10 @@ Route::middleware(['auth'])->prefix('customer')->name('customer.')->group(functi
     Route::get('/queue/{queue}/status', [BookingController::class, 'queueStatus'])->name('queue.status');
     Route::delete('/queue/{queue}', [BookingController::class, 'cancelQueue'])->name('queue.cancel');
     
-    // التقييمات
-    Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
-    Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
-    Route::post('/reviews/{booking}', [ReviewController::class, 'store'])->name('reviews.store');
-    
+   // التقييمات
+Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
+Route::post('/reviews/store/{booking}', [ReviewController::class, 'store'])->name('reviews.store'); // أضيفي /store/ قبل الباراميتر
     // إزالة الرموش
     Route::get('/removal', [RemovalController::class, 'step1'])->name('removal.step1');
     Route::post('/removal/store', [RemovalController::class, 'store'])->name('removal.store');
@@ -252,7 +251,17 @@ Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () 
     Route::get('/schedule', [App\Http\Controllers\Staff\ScheduleController::class, 'index'])->name('schedule');
     Route::get('/bookings', [App\Http\Controllers\Staff\BookingController::class, 'index'])->name('bookings');
     Route::put('/booking/{id}/status', [App\Http\Controllers\Staff\BookingController::class, 'updateStatus'])->name('booking.update-status');
-    Route::get('/my-reviews', [App\Http\Controllers\Staff\ReviewController::class, 'index'])->name('reviews');  // ✅ هذا السطر مهم
+    Route::get('/my-reviews', [App\Http\Controllers\Staff\ReviewController::class, 'index'])->name('reviews');
+    
+    // إجازات
+    Route::post('/leave/request', [App\Http\Controllers\Staff\LeaveController::class, 'request'])->name('leave.request');
+    Route::get('/leave/history', [App\Http\Controllers\Staff\LeaveController::class, 'history'])->name('leave.history');
+    Route::get('/leave/{id}', [App\Http\Controllers\Staff\LeaveController::class, 'show'])->name('leave.show');
+    
+    // رواتب
+    Route::get('/salary/current', [App\Http\Controllers\Staff\SalaryController::class, 'current'])->name('salary.current');
+    Route::get('/salary/history', [App\Http\Controllers\Staff\SalaryController::class, 'history'])->name('salary.history');
+    Route::get('/salary/{year}/{month}', [App\Http\Controllers\Staff\SalaryController::class, 'show'])->name('salary.show');
 });
 // ========== مسارات لوحة التحكم العامة ==========
 Route::middleware(['auth'])->get('/dashboard', function (Request $request) {

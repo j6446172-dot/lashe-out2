@@ -6,35 +6,52 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
     public function index()
     {
-        $reviews = auth()->user()->reviews()->with('booking.staff')->orderBy('created_at', 'desc')->get();
+        $reviews = Review::where('user_id', Auth::id())
+            ->with('booking.staff')
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
         return view('customer.reviews.index', compact('reviews'));
     }
 
-    public function create($bookingId)
+    public function create(int $bookingId)  // ✅ أضف int قبل $bookingId
     {
-        $booking = Booking::where('user_id', auth()->id())
+        $booking = Booking::where('user_id', Auth::id())
             ->where('id', $bookingId)
-            ->where('status', 'completed')
+            ->where(function($query) {
+                $query->where('status', 'completed')
+                      ->orWhere(function($q) {
+                          $q->where('status', 'confirmed')
+                            ->where('booking_date', '<', date('Y-m-d'));
+                      });
+            })
             ->firstOrFail();
             
         return view('customer.reviews.create', compact('booking'));
     }
 
-    public function store(Request $request, $bookingId)
+    public function store(Request $request, int $bookingId)  // ✅ أضف int قبل $bookingId
     {
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
         ]);
 
-        $booking = Booking::where('user_id', auth()->id())
+        $booking = Booking::where('user_id', Auth::id())
             ->where('id', $bookingId)
-            ->where('status', 'completed')
+            ->where(function($query) {
+                $query->where('status', 'completed')
+                      ->orWhere(function($q) {
+                          $q->where('status', 'confirmed')
+                            ->where('booking_date', '<', date('Y-m-d'));
+                      });
+            })
             ->firstOrFail();
 
         // منع التقييم المكرر
@@ -45,7 +62,7 @@ class ReviewController extends Controller
 
         Review::create([
             'booking_id' => $booking->id,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'staff_id' => $booking->staff_id,
             'rating' => $request->rating,
             'comment' => $request->comment,

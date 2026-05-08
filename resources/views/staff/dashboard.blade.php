@@ -110,6 +110,8 @@
                                     <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">✅ مؤكد</span>
                                 @elseif($booking->status == 'completed')
                                     <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">✓ مكتمل</span>
+                                @elseif($booking->status == 'cancelled')
+                                    <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">✗ ملغي</span>
                                 @else
                                     <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">⏳ قيد الانتظار</span>
                                 @endif

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\Booking;
 use App\Models\User;
 
@@ -12,12 +14,6 @@ class FinanceController extends Controller
 {
     /**
      * 💰 الصفحة المالية
-     * 
-     * تعرض:
-     * - الإيرادات والمصاريف وصافي الربح
-     * - رسوم بيانية للإيرادات الشهرية وتوزيع المصاريف
-     * - مقارنة بالشهر الماضي
-     * - إمكانية إضافة خصم أو مكافأة للموظفات
      */
     public function finance()
     {
@@ -70,15 +66,14 @@ class FinanceController extends Controller
 
     /**
      * 🔒 التحقق من كلمة المرور المالية
-     * 
-     * يتم استدعاؤها من النافذة المنبثقة في الداشبورد
      */
     public function verifyFinanceLogin(Request $request)
     {
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         
         // إذا ما ضبط كلمة مرور مالية بعد
-        if (!$user->finance_password) {
+        if (!$user || !$user->finance_password) {
             return redirect()->route('owner.dashboard')
                 ->with('finance_error', 'لم يتم ضبط كلمة المرور المالية بعد');
         }
@@ -97,27 +92,51 @@ class FinanceController extends Controller
      */
     public function saveFinance(Request $request)
     {
-        $s = User::find($request->staff_id);
-        if (!$s) return back()->with('error', 'الموظفة غير موجودة');
+        // 🔥 التحقق من البيانات
+        Log::info('saveFinance called', $request->all());
         
-        // إضافة الخصم أو المكافأة
-        if ($request->type == 'deduction') { 
-            $s->deduction = ($s->deduction ?? 0) + $request->amount; 
-        } else { 
-            $s->bonus = ($s->bonus ?? 0) + $request->amount; 
+        $request->validate([
+            'staff_id' => 'required|exists:users,id',
+            'type' => 'required|in:deduction,bonus',
+            'amount' => 'required|numeric|min:0'
+        ]);
+        
+        $staff = User::find($request->staff_id);
+        if (!$staff) {
+            Log::error('Staff not found', ['staff_id' => $request->staff_id]);
+            return back()->with('error', 'الموظفة غير موجودة');
         }
-        $s->save();
+        
+        if ($request->type == 'deduction') {
+            $staff->deduction = ($staff->deduction ?? 0) + $request->amount;
+        } else {
+            $staff->bonus = ($staff->bonus ?? 0) + $request->amount;
+        }
+        $staff->save();
+        
+        Log::info('Saved successfully', [
+            'staff_id' => $staff->id,
+            'bonus' => $staff->bonus,
+            'deduction' => $staff->deduction
+        ]);
         
         return redirect()->route('owner.finance')->with('success', 'تم الحفظ بنجاح ✅');
     }
-
+    
     /**
      * 🔒 تحديث كلمة المرور المالية
      */
     public function updateFinancePassword(Request $request)
     {
         $request->validate(['finance_password' => 'required|min:4|confirmed']);
-        auth()->user()->update(['finance_password' => Hash::make($request->finance_password)]);
+        
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user) {
+            $user->finance_password = Hash::make($request->finance_password);
+            $user->save();
+        }
+        
         return back()->with('success', 'تم حفظ كلمة المرور المالية بنجاح ✅');
     }
 }

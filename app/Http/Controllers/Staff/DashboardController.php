@@ -45,7 +45,7 @@ class DashboardController extends Controller
         $myRatingValue = (float) ($myRating ?? 0);
         $myRatingDisplay = $myRating ? number_format($myRating, 1) : 'جديد';
         
-        // 🔥 تصحيح مهم: استخدام 'user' بدلاً من 'customer'
+        // حجوزات اليوم
         $bookings = Booking::with('user')
             ->where('staff_id', $staffId)
             ->where('booking_date', $today)
@@ -67,9 +67,19 @@ class DashboardController extends Controller
             ->whereMonth('booking_date', date('m'))
             ->count();
         
+        // 🔥🔥🔥 التعديل المهم: جلب بيانات الراتب من قاعدة البيانات 🔥🔥🔥
+        $staff = User::find($staffId);
+        $staffSalary = [
+            'base_salary' => $staff->base_salary ?? 350,
+            'deduction' => $staff->deduction ?? 0,
+            'bonus' => $staff->bonus ?? 0,
+            'net_salary' => ($staff->base_salary ?? 350) - ($staff->deduction ?? 0) + ($staff->bonus ?? 0)
+        ];
+        
         return view('staff.dashboard', compact(
             'todayBookings', 'upcomingBookings', 'completedBookings',
-            'myRatingDisplay', 'myRatingValue', 'bookings', 'schedule', 'monthlyBookings'
+            'myRatingDisplay', 'myRatingValue', 'bookings', 'schedule', 
+            'monthlyBookings', 'staffSalary'
         ));
     }
 }

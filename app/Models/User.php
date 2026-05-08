@@ -26,6 +26,10 @@ class User extends Authenticatable
         'last_style_preference',
         'last_lash_duration',
         'avatar',
+        'base_salary',
+        'bonus',
+        'deduction',
+        'finance_password',
     ];
 
     /**
@@ -128,15 +132,15 @@ class User extends Authenticatable
     /**
      * الحصول على نقاط الولاء (بديل للعمود)
      */
-    public function getLoyaltyPointsAttribute($value)
+    public function getLoyaltyPointsAttribute(mixed $value): int  // ✅ تم إصلاح التحذير
     {
-        return $value ?? 0;
+        return (int)($value ?? 0);
     }
 
     /**
      * إضافة نقاط ولاء
      */
-    public function addLoyaltyPoints($points)
+    public function addLoyaltyPoints(int $points): void
     {
         $this->increment('loyalty_points', $points);
     }
@@ -144,7 +148,7 @@ class User extends Authenticatable
     /**
      * خصم نقاط ولاء
      */
-    public function deductLoyaltyPoints($points)
+    public function deductLoyaltyPoints(int $points): void
     {
         $this->decrement('loyalty_points', $points);
     }
@@ -154,7 +158,7 @@ class User extends Authenticatable
     /**
      * عدد الحجوزات المكتملة
      */
-    public function getCompletedBookingsCountAttribute()
+    public function getCompletedBookingsCountAttribute(): int
     {
         return $this->bookings()->where('status', 'completed')->count();
     }
@@ -162,7 +166,7 @@ class User extends Authenticatable
     /**
      * عدد الحجوزات المتبقية للخصم القادم
      */
-    public function getNextDiscountBookingAttribute()
+    public function getNextDiscountBookingAttribute(): int
     {
         $completed = $this->completed_bookings_count;
         
@@ -184,7 +188,7 @@ class User extends Authenticatable
     /**
      * نسبة الخصم المستحقة
      */
-    public function getDiscountPercentageAttribute()
+    public function getDiscountPercentageAttribute(): int
     {
         $completed = $this->completed_bookings_count;
         
@@ -199,7 +203,7 @@ class User extends Authenticatable
     /**
      * هل يمكن تطبيق الخصم على هذا الحجز؟
      */
-    public function canApplyDiscount()
+    public function canApplyDiscount(): bool
     {
         $completed = $this->completed_bookings_count;
         return $completed >= 5 && $completed % 5 == 0 && $this->loyalty_discount_used == 0;
@@ -208,7 +212,7 @@ class User extends Authenticatable
     /**
      * تطبيق الخصم (يتم استدعاؤه عند استخدام الخصم)
      */
-    public function applyDiscount()
+    public function applyDiscount(): void
     {
         $this->increment('loyalty_discount_used');
     }
@@ -218,7 +222,7 @@ class User extends Authenticatable
     /**
      * الحصول على اسم المستخدم مع اللقب المناسب
      */
-    public function getGreetingAttribute()
+    public function getGreetingAttribute(): string
     {
         $name = $this->name;
         $hour = now()->hour;
@@ -235,7 +239,7 @@ class User extends Authenticatable
     /**
      * الحصول على رابط صورة المستخدم
      */
-    public function getAvatarAttribute()
+    public function getAvatarAttribute(): string
     {
         return $this->avatar ?? 'https://ui-avatars.com/api/?background=ec4899&color=fff&name=' . urlencode($this->name);
     }
