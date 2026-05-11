@@ -110,9 +110,9 @@
                         <button type="submit" class="flex-1 font-bold py-3 rounded-xl transition hover:shadow-lg" style="background: #B08D57; color: #F3EDE6;">
                             <i class="fas fa-save ml-2"></i> حفظ التغييرات
                         </button>
-                        <a href="{{ route('customer.dashboard') }}" class="flex-1 text-center font-bold py-3 rounded-xl transition hover:opacity-80" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
-                            <i class="fas fa-arrow-right ml-2"></i> رجوع
-                        </a>
+                        <a href="{{ url()->previous() }}" class="flex-1 text-center font-bold py-3 rounded-xl transition hover:opacity-80" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+                        <i class="fas fa-arrow-right ml-2"></i> رجوع
+                    </a>
                     </div>
                 </form>
             </div>

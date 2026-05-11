@@ -8,44 +8,7 @@
                     LASHE OUT 👑
                 </a>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    {{-- إشعارات المالك --}}
-                    <div class="relative" x-data="{ notif: false }">
-                        @php 
-                            $notifications = \DB::table('notifications')
-                                ->where('owner_id', auth()->id())
-                                ->latest()
-                                ->take(5)
-                                ->get();
-                            $unreadCount = \DB::table('notifications')
-                                ->where('owner_id', auth()->id())
-                                ->where('is_read', false)
-                                ->count();
-                        @endphp
-                        
-                        <button @click="notif = !notif" @click.away="notif = false" 
-                                style="width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(200,162,122,0.1); border: none; cursor: pointer; font-size: 18px; position: relative;">
-                            🔔
-                            @if($unreadCount > 0)
-                                <span style="position: absolute; top: -3px; right: -3px; width: 18px; height: 18px; border-radius: 50%; background: #ef4444; color: white; font-size: 10px; display: flex; align-items: center; justify-content: center;">{{ $unreadCount }}</span>
-                            @endif
-                        </button>
-                        
-                        <div x-show="notif" @click.away="notif = false" x-cloak 
-                             class="absolute left-0 mt-2 w-72 rounded-2xl shadow-xl z-50 overflow-hidden" 
-                             style="background: white; border: 1px solid rgba(200, 162, 122, 0.15);">
-                            <div class="px-4 py-3" style="border-bottom: 1px solid rgba(200, 162, 122, 0.1);">
-                                <p class="font-bold" style="color: #8B6B4A;">🔔 الإشعارات</p>
-                            </div>
-                            @forelse($notifications as $n)
-                                <div class="px-4 py-3 hover:bg-gray-50 border-b text-sm" style="border-color: rgba(200, 162, 122, 0.1);">
-                                    <p class="font-bold" style="color: #2B1E1A;">{{ $n->title }}</p>
-                                    <p style="color: #7C8574;">{{ $n->message }}</p>
-                                </div>
-                            @empty
-                                <div class="px-4 py-6 text-center text-sm" style="color: #7C8574;">لا توجد إشعارات</div>
-                            @endforelse
-                        </div>
-                    </div>
+                   
                     
                     {{-- قائمة المستخدم للمالك --}}
                     <div class="relative" x-data="{ open: false }">

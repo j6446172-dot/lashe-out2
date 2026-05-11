@@ -28,6 +28,21 @@
             <h1 class="text-2xl font-bold" style="color: #F3EDE6;">👑 مرحباً {{ auth()->user()->name }}! يومك سعيد ✨</h1>
             <p class="text-sm mt-1" style="color: rgba(243, 237, 230, 0.8);">📅 {{ \Carbon\Carbon::now()->locale('ar')->translatedFormat('l j F Y') }}</p>
         </div>
+        @if($pendingLeavesCount > 0)
+<div style="background: rgba(245, 158, 11, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid #f59e0b; text-align: right;">
+    <h3 style="font-weight: bold; margin-bottom: 10px; color: #2B1E1A;">🔔 طلبات إجازة معلقة ({{ $pendingLeavesCount }})</h3>
+    @foreach($pendingLeaves as $leave)
+    <div style="background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px;">
+        <p><strong>{{ $leave->staff->name }}</strong></p>
+        <p style="color: #7C8574; font-size: 14px;">{{ $leave->leave_type }} - {{ $leave->start_date }}</p>
+        <div style="margin-top: 8px;">
+            <a href="{{ route('owner.leaves.approve', $leave->id) }}" style="background: #10b981; color: white; padding: 6px 18px; border-radius: 8px; text-decoration: none; display: inline-block; margin-left: 8px;">✅ قبول</a>
+            <a href="{{ route('owner.leaves.reject', $leave->id) }}" style="background: #ef4444; color: white; padding: 6px 18px; border-radius: 8px; text-decoration: none; display: inline-block;">❌ رفض</a>
+        </div>
+    </div>
+    @endforeach
+</div>
+@endif
 
         <div class="grid grid-cols-3 gap-4 mb-6">
             <a href="#" onclick="event.preventDefault(); document.getElementById('financePasswordModal').classList.remove('hidden'); document.getElementById('financePasswordModal').classList.add('flex')" class="rounded-xl p-5 text-center transition hover:-translate-y-1 hover:shadow-lg" style="text-decoration: none; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">

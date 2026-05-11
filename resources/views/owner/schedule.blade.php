@@ -109,30 +109,36 @@
                                     <td class="p-3 text-center cursor-pointer hover:bg-gray-50 rounded" 
                                         onclick="openEditModal('{{ $staff->id }}', '{{ $staff->name }}', '{{ $day }}', '{{ $index }}')">
                                         @php
-                                            $schedule = \DB::table('staff_schedule')
-                                                ->where('staff_id', $staff->id)
-                                                ->where('day_of_week', $index)
-                                                ->first();
-                                        @endphp
-                                        @if($schedule && isset($schedule->status) && $schedule->status != 'active')
-                                            <span class="text-red-500 text-xs">
-                                                @if($schedule->status == 'annual') 🔴 سنوية
-                                                @elseif($schedule->status == 'sick') 🤒 مرضية
-                                                @elseif($schedule->status == 'emergency') 🚨 طارئة
-                                                @elseif($schedule->status == 'unpaid') 💸 بدون راتب
-                                                @elseif($schedule->status == 'half_day') 🌓 نصف يوم
-                                                @elseif($schedule->status == 'swap') 🔄 تبديل
-                                                @elseif($schedule->status == 'dayoff') 🔴 عطلة
-                                                @else 🔴 إجازة
-                                                @endif
-                                            </span>
-                                        @else
-                                            @php
-                                                $startTime = ($schedule && isset($schedule->start_time)) ? $schedule->start_time : '10:00';
-                                                $endTime = ($schedule && isset($schedule->end_time)) ? $schedule->end_time : '18:00';
-                                            @endphp
-                                            <span class="text-green-600 text-xs">🟢 {{ $startTime }}-{{ $endTime }}</span>
-                                        @endif
+    // جلب حالة دوام الصالون لهذا اليوم
+    $salonDay = \DB::table('salon_schedule')->where('day_of_week', $index)->first();
+    $salonIsOpen = $salonDay ? $salonDay->is_open : ($index != 6);
+    
+    // جلب دوام الموظفة
+    $schedule = \DB::table('staff_schedule')
+        ->where('staff_id', $staff->id)
+        ->where('day_of_week', $index)
+        ->first();
+    
+    $displayStatus = $schedule->status ?? ($salonIsOpen ? 'active' : 'dayoff');
+    $startTime = ($schedule && isset($schedule->start_time)) ? $schedule->start_time : ($salonDay->start_time ?? '10:00');
+    $endTime = ($schedule && isset($schedule->end_time)) ? $schedule->end_time : ($salonDay->end_time ?? '18:00');
+@endphp
+
+@if(!$salonIsOpen || $displayStatus != 'active')
+    <span class="text-red-500 text-xs">
+        @if($displayStatus == 'annual') 🔴 سنوية
+        @elseif($displayStatus == 'sick') 🤒 مرضية
+        @elseif($displayStatus == 'emergency') 🚨 طارئة
+        @elseif($displayStatus == 'unpaid') 💸 بدون راتب
+        @elseif($displayStatus == 'half_day') 🌓 نصف يوم
+        @elseif($displayStatus == 'swap') 🔄 تبديل
+        @elseif($displayStatus == 'dayoff' || !$salonIsOpen) 🔴 عطلة
+        @else 🔴 إجازة
+        @endif
+    </span>
+@else
+    <span class="text-green-600 text-xs">🟢 {{ $startTime }}-{{ $endTime }}</span>
+@endif
                                     </td>
                                     @endforeach
                                 </tr>

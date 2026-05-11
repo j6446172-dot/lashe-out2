@@ -126,6 +126,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 new Chart(document.getElementById('revenueChart'),{type:'bar',data:{labels:{!! json_encode($chartMonths ?? []) !!},datasets:[{data:{!! json_encode($chartRevenue ?? []) !!},backgroundColor:'#B08D57',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
-new Chart(document.getElementById('expensesChart'),{type:'doughnut',data:{labels:['رواتب','مواد','إيجار'],datasets:[{data:[{{ $salaries ?? 0 }},{{ $materials ?? 0 }},{{ $rent ?? 0 }}],backgroundColor:['#B08D57','#9a7848','#7C8574']}]},options:{responsive:true,maintainAspectRatio:false}});
+
+new Chart(document.getElementById('expensesChart'),{type:'doughnut',data:{labels:['رواتب','مواد','إيجار'],datasets:[{data:[{{ $salaries ?? 0 }},{{ $materials ?? 0 }},{{ $rent ?? 0 }}],backgroundColor:['#C8A27A','#E8D5C4','#6B5B4B']}]},options:{responsive:true,maintainAspectRatio:false}});
 </script>
 @endsection

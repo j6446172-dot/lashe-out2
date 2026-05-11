@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'owner',
                 'password' => Hash::make('123'),
+                'finance_password' => Hash::make('1234'), 
                 'role' => 'owner',
                 'loyalty_points' => 0,
             ]

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\LeaveRequest;
 use App\Models\User;
 use App\Models\Review;
 
@@ -73,12 +74,34 @@ class DashboardController extends Controller
         // 👩‍💼 أداء الموظفات (للرسم البياني)
         $staffPerformance = (new \App\Http\Controllers\OwnerController)->getStaffPerformance();
 
+
+
+        // 📋 طلبات الإجازة المعلقة
+       $pendingLeaves = LeaveRequest::where('status', 'pending')
+    ->with('staff')
+    ->latest()
+    ->get();
+         $pendingLeavesCount = $pendingLeaves->count();
+
+         
         // إرسال جميع البيانات للصفحة
         return view('owner.dashboard', compact(
             'totalCustomers', 'monthlyRevenue', 'netProfit', 'returnRate',
             'averageRating', 'todayBookings', 'todayBookingsList', 'staffPerformance',
             'salaries', 'materials', 'rent', 'chartMonths', 'chartRevenue',
-            'customerGrowthMonths', 'customerGrowthData'
+            'customerGrowthMonths', 'customerGrowthData', 'pendingLeaves', 'pendingLeavesCount'
         ));
     }
+      public function approveLeave(int $id)
+{
+    LeaveRequest::find($id)->update(['status' => 'approved']);
+    return back()->with('success', 'تمت الموافقة ✅');
+}
+
+public function rejectLeave(int $id)
+{
+    LeaveRequest::find($id)->update(['status' => 'rejected']);
+    return back()->with('success', 'تم الرفض ❌');
+}
+
 }
