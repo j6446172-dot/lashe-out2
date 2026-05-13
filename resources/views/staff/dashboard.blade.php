@@ -127,64 +127,90 @@
                 </div>
             </div>
 
-           {{-- My Schedule --}}
+   {{-- My Schedule --}}
 <div class="rounded-xl p-6" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-bold">📅 دوامي هذا الأسبوع</h3>
-        <a href="{{ route('staff.schedule') }}" class="text-sm px-3 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.2); color: #B08D57;">
-            عرض الكل <i class="fas fa-arrow-left mr-1"></i>
-        </a>
+        <div class="text-xs px-3 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+            يتبع توقيت الصالون والإجازات الخاصة
+        </div>
     </div>
 
     <div class="space-y-2">
         @php
-            // مصفوفة أيام الأسبوع بالترتيب العربي
             $daysOfWeek = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-            
-            // للحصول على رقم اليوم الحالي (0 للأحد، 6 للسبت)
-            $w = (int)date('w'); 
-            
-            // تحويل الرقم ليتناسب مع مصفوفتنا (التي تبدأ بالسبت)
-            // إذا كان اليوم سبت (6) سيصبح 0، الأحد (0) سيصبح 1، وهكذا..
-            $todayIndex = ($w + 1) % 7; 
+            $w = (int)date('w');
+            $todayIndex = ($w + 1) % 7;
         @endphp
 
         @foreach($daysOfWeek as $index => $dayName)
             @php
                 $isToday = ($index == $todayIndex);
-                // ملاحظة: تأكدي أن مصفوفة $schedule القادمة من الكنترولر مرتبة من 0 (سبت) إلى 6 (جمعة)
-                $daySchedule = $schedule[$index] ?? null;
-                $isWorking = $daySchedule && isset($daySchedule->status) && $daySchedule->status == 'active';
+
+                // 1. جلب حالة الصالون الأساسية من جدول الأونر
+                $salonDay = \DB::table('salon_schedule')->where('day_of_week', $index)->first();
+                $salonIsOpen = $salonDay ? $salonDay->is_open : ($index != 6);
+
+                // 2. جلب سجل الموظفة الخاص (الذي عدله الأونر يدوياً لكِ)
+                $staffDay = \DB::table('staff_schedule')
+                    ->where('staff_id', auth()->id())
+                    ->where('day_of_week', $index)
+                    ->first();
+
+                // 3. تحديد الحالة النهائية:
+                // الأولوية 1: إذا الصالون مغلق -> عطلة إجبارية
+                // الأولوية 2: إذا الموظفة لها سجل خاص (إجازة/دوام) -> نأخذ حالتها
+                // الأولوية 3: غير ذلك -> تتبع الصالون (دوام لو الصالون فاتح)
+
+                if (!$salonIsOpen) {
+                    $finalStatus = 'dayoff'; // عطلة صالون
+                    $isWorking = false;
+                } elseif ($staffDay) {
+                    $finalStatus = $staffDay->status;
+                    $isWorking = ($staffDay->status === 'active' || $staffDay->status === 'open');
+                } else {
+                    $finalStatus = $salonIsOpen ? 'active' : 'dayoff';
+                    $isWorking = $salonIsOpen;
+                }
+
+                // 4. تحديد الأوقات
+                $startTime = ($staffDay && $staffDay->start_time) ? $staffDay->start_time : ($salonDay->start_time ?? '10:00');
+                $endTime = ($staffDay && $staffDay->end_time) ? $staffDay->end_time : ($salonDay->end_time ?? '18:00');
             @endphp
-            
+
             <div class="p-3 rounded-lg {{ $isToday ? 'bg-gradient-to-r from-amber-50 to-transparent border-r-4 border-[#B08D57]' : '' }}">
                 <div class="flex justify-between items-center">
+
                     <div class="flex items-center gap-3">
                         <span class="font-medium {{ $isToday ? 'text-[#B08D57] font-bold' : 'text-gray-700' }}">
                             {{ $dayName }}
-                            @if($isToday)
-                                <span class="text-xs mr-2 font-bold">(اليوم)</span>
-                            @endif
+                            @if($isToday) <span class="text-xs mr-2 font-bold">(اليوم)</span> @endif
                         </span>
-                        
+
                         @if($isWorking)
                             <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">دوام</span>
                         @else
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">عطلة</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                                @if(!$salonIsOpen) عطلة الصالون 
+                                @elseif($finalStatus == 'annual') سنوية
+                                @elseif($finalStatus == 'sick') مرضية
+                                @else عطلة @endif
+                            </span>
                         @endif
                     </div>
-                    
+
                     <div class="text-sm">
-                        @if($isWorking && isset($daySchedule->start_time))
+                        @if($isWorking)
                             <span class="text-gray-600 font-mono">
-                                <i class="far fa-clock ml-1 text-[#B08D57]"></i> 
-                                {{ \Carbon\Carbon::parse($daySchedule->start_time)->format('g:i A') }} - 
-                                {{ \Carbon\Carbon::parse($daySchedule->end_time)->format('g:i A') }}
+                                <i class="far fa-clock ml-1 text-[#B08D57]"></i>
+                                {{ \Carbon\Carbon::parse($startTime)->format('g:i A') }} -
+                                {{ \Carbon\Carbon::parse($endTime)->format('g:i A') }}
                             </span>
                         @else
                             <span class="text-gray-400 italic">--- راحة ---</span>
                         @endif
                     </div>
+
                 </div>
             </div>
         @endforeach
