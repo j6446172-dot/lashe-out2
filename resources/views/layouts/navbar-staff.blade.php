@@ -548,21 +548,28 @@
             }
             
             // دالة تحديث عدد الرسائل غير المقروءة
-            async function updateUnreadCount() { 
-                try { 
-                    const r = await fetch('{{ route("staff.chat.unread-count") }}'); 
-                    const d = await r.json(); 
-                    const b = document.getElementById('chat-unread-badge'); 
-                    if(d.count > 0 && !document.getElementById('chatPopup').classList.contains('show')) { 
-                        b.textContent = d.count; 
-                        b.classList.remove('hidden'); 
-                    } else { 
-                        b.classList.add('hidden'); 
-                    } 
-                } catch(e) { 
-                    console.error('UpdateUnreadCount Error:', e); 
-                } 
+          async function updateUnreadCount() { 
+    try { 
+        const response = await fetch('{{ route("staff.chat.unread-count") }}', {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
             }
+        }); 
+        const d = await response.json(); 
+        const b = document.getElementById('chat-unread-badge'); 
+        if(b) {
+            if(d.count > 0 && !document.getElementById('chatPopup').classList.contains('show')) { 
+                b.textContent = d.count; 
+                b.classList.remove('hidden'); 
+            } else { 
+                b.classList.add('hidden'); 
+            } 
+        }
+    } catch(e) { 
+        console.error(e); 
+    } 
+}
             
             // تشغيل تحديث عدد الرسائل كل 5 ثواني
             if (document.getElementById('chat-unread-badge')) {
