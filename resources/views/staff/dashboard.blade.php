@@ -127,72 +127,70 @@
                 </div>
             </div>
 
-            {{-- My Schedule --}}
-            <div class="rounded-xl p-6" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold">📅 دوامي هذا الأسبوع</h3>
-                    <a href="{{ route('staff.schedule') }}" class="text-sm px-3 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.2); color: #B08D57;">
-                        عرض الكل <i class="fas fa-arrow-left mr-1"></i>
-                    </a>
-                </div>
+           {{-- My Schedule --}}
+<div class="rounded-xl p-6" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">📅 دوامي هذا الأسبوع</h3>
+        <a href="{{ route('staff.schedule') }}" class="text-sm px-3 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.2); color: #B08D57;">
+            عرض الكل <i class="fas fa-arrow-left mr-1"></i>
+        </a>
+    </div>
 
-                <div class="space-y-2">
-                    @php
-                        $daysOfWeek = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-                        $todayIndex = date('w') - 1;
-                        if($todayIndex < 0) $todayIndex = 6;
-                    @endphp
+    <div class="space-y-2">
+        @php
+            // مصفوفة أيام الأسبوع بالترتيب العربي
+            $daysOfWeek = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+            
+            // للحصول على رقم اليوم الحالي (0 للأحد، 6 للسبت)
+            $w = (int)date('w'); 
+            
+            // تحويل الرقم ليتناسب مع مصفوفتنا (التي تبدأ بالسبت)
+            // إذا كان اليوم سبت (6) سيصبح 0، الأحد (0) سيصبح 1، وهكذا..
+            $todayIndex = ($w + 1) % 7; 
+        @endphp
 
-                    @foreach($daysOfWeek as $index => $dayName)
-                        @php
-                            $isToday = ($index == $todayIndex);
-                            $daySchedule = isset($schedule[$index]) ? $schedule[$index] : null;
-                            $isWorking = $daySchedule && isset($daySchedule->status) && $daySchedule->status == 'active';
-                        @endphp
-                        <div class="p-3 rounded-lg {{ $isToday ? 'bg-gradient-to-r from-amber-50 to-transparent' : '' }}">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <span class="font-medium {{ $isToday ? 'text-[#B08D57] font-bold' : '' }}">
-                                        {{ $dayName }}
-                                        @if($isToday)
-                                            <span class="text-xs mr-2 text-[#B08D57]">(اليوم)</span>
-                                        @endif
-                                    </span>
-                                    @if($isWorking)
-                                        <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">دوام</span>
-                                    @else
-                                        <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">عطلة</span>
-                                    @endif
-                                </div>
-                                <div class="text-sm text-gray-600">
-                                    @if($isWorking && $daySchedule && isset($daySchedule->start_time))
-                                        <i class="far fa-clock ml-1"></i> {{ $daySchedule->start_time }} - {{ $daySchedule->end_time }}
-                                    @else
-                                        <span class="text-gray-400">— راحة —</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+        @foreach($daysOfWeek as $index => $dayName)
+            @php
+                $isToday = ($index == $todayIndex);
+                // ملاحظة: تأكدي أن مصفوفة $schedule القادمة من الكنترولر مرتبة من 0 (سبت) إلى 6 (جمعة)
+                $daySchedule = $schedule[$index] ?? null;
+                $isWorking = $daySchedule && isset($daySchedule->status) && $daySchedule->status == 'active';
+            @endphp
+            
+            <div class="p-3 rounded-lg {{ $isToday ? 'bg-gradient-to-r from-amber-50 to-transparent border-r-4 border-[#B08D57]' : '' }}">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="font-medium {{ $isToday ? 'text-[#B08D57] font-bold' : 'text-gray-700' }}">
+                            {{ $dayName }}
+                            @if($isToday)
+                                <span class="text-xs mr-2 font-bold">(اليوم)</span>
+                            @endif
+                        </span>
+                        
+                        @if($isWorking)
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">دوام</span>
+                        @else
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">عطلة</span>
+                        @endif
+                    </div>
+                    
+                    <div class="text-sm">
+                        @if($isWorking && isset($daySchedule->start_time))
+                            <span class="text-gray-600 font-mono">
+                                <i class="far fa-clock ml-1 text-[#B08D57]"></i> 
+                                {{ \Carbon\Carbon::parse($daySchedule->start_time)->format('g:i A') }} - 
+                                {{ \Carbon\Carbon::parse($daySchedule->end_time)->format('g:i A') }}
+                            </span>
+                        @else
+                            <span class="text-gray-400 italic">--- راحة ---</span>
+                        @endif
+                    </div>
                 </div>
             </div>
-        </div>
-
-        {{-- Quick Actions --}}
-        <div class="rounded-xl p-4 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px);">
-            <div class="flex flex-wrap justify-center gap-3">
-                <a href="{{ route('staff.schedule') }}" class="px-5 py-2 rounded-lg text-white" style="background: #B08D57;">
-                    <i class="fas fa-calendar-alt"></i> جدول دوامي
-                </a>
-                <a href="{{ route('staff.bookings') }}" class="px-5 py-2 rounded-lg text-white" style="background: #6B7280;">
-                    <i class="fas fa-list-ul"></i> كل الحجوزات
-                </a>
-                <a href="{{ route('staff.reviews') }}" class="px-5 py-2 rounded-lg text-white" style="background: #f59e0b;">
-                    <i class="fas fa-star"></i> تقييماتي
-                </a>
-            </div>
-        </div>
-
+        @endforeach
+    </div>
+</div>
+       
     </div>
 </div>
 @endsection
