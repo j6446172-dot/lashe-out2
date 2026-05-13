@@ -105,7 +105,7 @@ Route::middleware(['auth'])->prefix('customer')->name('customer.')->group(functi
    // التقييمات
 Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
 Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
-Route::post('/reviews/store/{booking}', [ReviewController::class, 'store'])->name('reviews.store'); // أضيفي /store/ قبل الباراميتر
+Route::post('/reviews/store/{booking}', [ReviewController::class, 'store'])->name('reviews.store');
     // إزالة الرموش
     Route::get('/removal', [RemovalController::class, 'step1'])->name('removal.step1');
     Route::post('/removal/store', [RemovalController::class, 'store'])->name('removal.store');
@@ -225,44 +225,22 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
     Route::get('/staff-schedule/{id}', [ScheduleController::class, 'getStaffSchedule']);
     Route::post('/staff-schedule/save', [ScheduleController::class, 'saveStaffSchedule']);
     Route::get('/leaves/approve/{id}', [DashboardController::class, 'approveLeave'])->name('leaves.approve');
-Route::get('/leaves/reject/{id}', [DashboardController::class, 'rejectLeave'])->name('leaves.reject');
+    Route::get('/leaves/reject/{id}', [DashboardController::class, 'rejectLeave'])->name('leaves.reject');
+    
+    // ========== شات المالك مع الموظفين ==========
+    Route::get('/chat/staff/{staffId}/messages', [App\Http\Controllers\Owner\ChatController::class, 'getStaffMessages'])->name('chat.staff.messages');
+    Route::post('/chat/send-to-staff', [App\Http\Controllers\Owner\ChatController::class, 'sendToStaff'])->name('chat.send');
+    Route::get('/chat/unread-count', [App\Http\Controllers\Owner\ChatController::class, 'getUnreadCount'])->name('chat.unread-count');
+    Route::post('/chat/mark-read', [App\Http\Controllers\Owner\ChatController::class, 'markAsRead'])->name('chat.mark-read');
 });
 
 // ========== شات الموظف مع المالك ==========
-Route::middleware(['auth'])->group(function () {
-    Route::get('/chat/owner', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.owner');
+Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () {
+    Route::get('/chat/owner', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
     Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
     Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/mark-read', [App\Http\Controllers\ChatController::class, 'markAsRead'])->name('chat.mark-read');
     Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread-count');
-});
-
-// ========== شات المالك مع الموظفين ==========
-Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
-
-    // شات مع موظف معين
-    Route::get(
-        '/chat/staff/{staffId}/messages',
-        [App\Http\Controllers\Owner\ChatController::class, 'getStaffMessages']
-    )->name('chat.staff.messages');
-
-    // إرسال رسالة لموظف
-    Route::post(
-        '/chat/send',
-        [App\Http\Controllers\Owner\ChatController::class, 'sendToStaff']
-    )->name('chat.send');
-
-    // عدد الرسائل غير المقروءة
-    Route::get(
-        '/chat/unread-count',
-        [App\Http\Controllers\Owner\ChatController::class, 'getUnreadCount']
-    )->name('chat.unread-count');
-
-    // تعليم الرسائل كمقروءة
-    Route::post(
-        '/chat/mark-read',
-        [App\Http\Controllers\Owner\ChatController::class, 'markAsRead']
-    )->name('chat.mark-read');
 });
 
 // ========== مسارات الموظف (Staff) ==========
@@ -283,6 +261,7 @@ Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () 
     Route::get('/salary/history', [App\Http\Controllers\Staff\SalaryController::class, 'history'])->name('salary.history');
     Route::get('/salary/{year}/{month}', [App\Http\Controllers\Staff\SalaryController::class, 'show'])->name('salary.show');
 });
+
 // ========== مسارات لوحة التحكم العامة ==========
 Route::middleware(['auth'])->get('/dashboard', function (Request $request) {
     $user = $request->user();
@@ -294,4 +273,4 @@ Route::middleware(['auth'])->get('/dashboard', function (Request $request) {
         return redirect()->route('owner.dashboard');
     }
     return redirect('/');
-})->name('dashboard'); 
+})->name('dashboard');
