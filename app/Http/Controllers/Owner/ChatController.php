@@ -9,29 +9,22 @@ use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
-    /**
-     * جلب رسائل الشات مع موظف معين
-     * 
-     * @param int $staffId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getStaffMessages(int $staffId)  // <-- أضفنا int قبل $staffId
+    public function getStaffMessages(int $staffId)
     {
-        $messages = ChatMessage::where(function($query) use ($staffId) {
-                $query->where('from_user_id', Auth::id())->where('to_user_id', $staffId);
-            })->orWhere(function($query) use ($staffId) {
-                $query->where('from_user_id', $staffId)->where('to_user_id', Auth::id());
-            })->orderBy('created_at', 'asc')->get();
-        
+        $messages = ChatMessage::where(function ($q) use ($staffId) {
+                $q->where('from_user_id', Auth::id())
+                  ->where('to_user_id', $staffId);
+            })
+            ->orWhere(function ($q) use ($staffId) {
+                $q->where('from_user_id', $staffId)
+                  ->where('to_user_id', Auth::id());
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+
         return response()->json($messages);
     }
 
-    /**
-     * إرسال رسالة إلى موظف
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function sendToStaff(Request $request)
     {
         $request->validate([
@@ -52,42 +45,26 @@ class ChatController extends Controller
         ]);
     }
 
-    /**
-     * جلب عدد الرسائل غير المقروءة من الموظفين
-     * 
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getUnreadCount()
     {
         $count = ChatMessage::where('to_user_id', Auth::id())
             ->where('is_read', false)
             ->count();
-        
+
         return response()->json(['count' => $count]);
     }
 
-    /**
-     * تحديث حالة الرسائل كمقروءة
-     * 
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function markAsRead(Request $request)
-    {
-        $request->validate([
-            'staff_id' => 'nullable|exists:users,id'
-        ]);
+  public function markAsRead(Request $request)
+{
+    $query = ChatMessage::where('to_user_id', Auth::id())
+        ->where('is_read', false);
 
-        if ($request->has('staff_id')) {
-            ChatMessage::where('to_user_id', Auth::id())
-                ->where('from_user_id', $request->staff_id)
-                ->where('is_read', false)
-                ->update(['is_read' => true]);
-        } else {
-            ChatMessage::where('to_user_id', Auth::id())
-                ->where('is_read', false)
-                ->update(['is_read' => true]);
-        }
-
-        return response()->json(['success' => true]);
+    if ($request->staff_id) {
+        $query->where('from_user_id', $request->staff_id);
     }
+
+    $query->update(['is_read' => true]);
+
+    return response()->json(['success' => true]);
+}
 }

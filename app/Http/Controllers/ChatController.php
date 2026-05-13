@@ -3,22 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChatMessage;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
+    private function getOwner()
+    {
+        return User::where('role', 'owner')->first();
+    }
+
     public function index()
     {
-        // جلب المحادثات بين الموظف والمالك
-        $ownerId = \App\Models\User::where('role', 'owner')->first()->id;
-        
-        $messages = ChatMessage::where(function($query) use ($ownerId) {
-                $query->where('from_user_id', Auth::id())->where('to_user_id', $ownerId);
-            })->orWhere(function($query) use ($ownerId) {
-                $query->where('from_user_id', $ownerId)->where('to_user_id', Auth::id());
-            })->orderBy('created_at', 'asc')->get();
-        
+        $owner = $this->getOwner();
+
+        $messages = [];
+
+        if ($owner) {
+            $messages = ChatMessage::where(function ($q) use ($owner) {
+                    $q->where('from_user_id', Auth::id())
+                      ->where('to_user_id', $owner->id);
+                })
+                ->orWhere(function ($q) use ($owner) {
+                    $q->where('from_user_id', $owner->id)
+                      ->where('to_user_id', Auth::id());
+                })
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
+
         return view('chat.index', compact('messages'));
     }
 
@@ -28,11 +42,18 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000'
         ]);
 
-        $ownerId = \App\Models\User::where('role', 'owner')->first()->id;
+        $owner = $this->getOwner();
+
+        if (!$owner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Owner not found'
+            ], 404);
+        }
 
         $message = ChatMessage::create([
             'from_user_id' => Auth::id(),
-            'to_user_id' => $ownerId,
+            'to_user_id' => $owner->id,
             'message' => $request->message,
             'is_read' => false
         ]);
@@ -46,32 +67,44 @@ class ChatController extends Controller
 
     public function getMessages()
     {
-        $ownerId = \App\Models\User::where('role', 'owner')->first()->id;
-        
-        $messages = ChatMessage::where(function($query) use ($ownerId) {
-                $query->where('from_user_id', Auth::id())->where('to_user_id', $ownerId);
-            })->orWhere(function($query) use ($ownerId) {
-                $query->where('from_user_id', $ownerId)->where('to_user_id', Auth::id());
-            })->orderBy('created_at', 'asc')->get();
-        
+        $owner = $this->getOwner();
+
+        if (!$owner) {
+            return response()->json([]);
+        }
+
+        $messages = ChatMessage::where(function ($q) use ($owner) {
+                $q->where('from_user_id', Auth::id())
+                  ->where('to_user_id', $owner->id);
+            })
+            ->orWhere(function ($q) use ($owner) {
+                $q->where('from_user_id', $owner->id)
+                  ->where('to_user_id', Auth::id());
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+
         return response()->json($messages);
     }
 
-    public function markAsRead()
-    {
-        ChatMessage::where('to_user_id', Auth::id())
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
-        
-        return response()->json(['success' => true]);
-    }
+   public function markAsRead()
+{
+    $owner = $this->getOwner();
+
+    ChatMessage::where('to_user_id', Auth::id())
+        ->where('from_user_id', $owner?->id)
+        ->where('is_read', false)
+        ->update(['is_read' => true]);
+
+    return response()->json(['success' => true]);
+}
 
     public function getUnreadCount()
     {
         $count = ChatMessage::where('to_user_id', Auth::id())
             ->where('is_read', false)
             ->count();
-        
+
         return response()->json(['count' => $count]);
     }
 }

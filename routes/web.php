@@ -237,14 +237,32 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread-count');
 });
 
-
 // ========== شات المالك مع الموظفين ==========
 Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
-    // ... باقي Routes المالك
-    
+
     // شات مع موظف معين
-    Route::get('/chat/staff/{staffId}/messages', [App\Http\Controllers\Owner\ChatController::class, 'getStaffMessages'])->name('chat.staff.messages');
-    Route::post('/chat/send', [App\Http\Controllers\Owner\ChatController::class, 'sendToStaff'])->name('chat.send');
+    Route::get(
+        '/chat/staff/{staffId}/messages',
+        [App\Http\Controllers\Owner\ChatController::class, 'getStaffMessages']
+    )->name('chat.staff.messages');
+
+    // إرسال رسالة لموظف
+    Route::post(
+        '/chat/send',
+        [App\Http\Controllers\Owner\ChatController::class, 'sendToStaff']
+    )->name('chat.send');
+
+    // عدد الرسائل غير المقروءة
+    Route::get(
+        '/chat/unread-count',
+        [App\Http\Controllers\Owner\ChatController::class, 'getUnreadCount']
+    )->name('chat.unread-count');
+
+    // تعليم الرسائل كمقروءة
+    Route::post(
+        '/chat/mark-read',
+        [App\Http\Controllers\Owner\ChatController::class, 'markAsRead']
+    )->name('chat.mark-read');
 });
 
 // ========== مسارات الموظف (Staff) ==========
