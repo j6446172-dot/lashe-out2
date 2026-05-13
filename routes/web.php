@@ -294,4 +294,4 @@ Route::middleware(['auth'])->get('/dashboard', function (Request $request) {
         return redirect()->route('owner.dashboard');
     }
     return redirect('/');
-})->name('dashboard');
+})->name('dashboard'); 
