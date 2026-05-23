@@ -175,65 +175,66 @@
             </div>
         </div>
 
-        {{-- نافذة طلب إجازة --}}
-        <div id="leaveModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-            <div class="rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3);">
-                <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-white"></i><span class="font-bold text-white">طلب إجازة</span></div>
-                        <button onclick="closeLeaveModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+       {{-- نافذة طلب إجازة --}}
+<div id="leaveModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
+    <div class="rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3);">
+        <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-white"></i><span class="font-bold text-white">طلب إجازة</span></div>
+                <button onclick="closeLeaveModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        
+        <form id="leaveRequestForm" class="p-4">
+            @csrf
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نوع الإجازة</label>
+                    <select name="leave_type" required class="w-full rounded-xl px-4 py-2 border focus:outline-none focus:border-[#B08D57]" style="border-color: rgba(176, 141, 87, 0.3);">
+                        <option value="">اختر نوع الإجازة</option>
+                        <option value="annual">🌴 إجازة سنوية</option>
+                        <option value="sick">🤒 إجازة مرضية</option>
+                        <option value="emergency">⚡ إجازة طارئة</option>
+                        <option value="unpaid">💰 إجازة بدون راتب</option>
+                        <option value="half_day">🌓 نصف يوم</option>
+                        <option value="swap">🔄 تبديل وردية</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نظام الإجازة</label>
+                    <div class="flex gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="duration_type" value="days" checked onclick="toggleDurationType()"> <span>📅 أيام</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="duration_type" value="hours" onclick="toggleDurationType()"> <span>⏰ ساعات</span></label>
                     </div>
                 </div>
                 
-                <form id="leaveRequestForm" class="p-4">
-                    @csrf
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نوع الإجازة</label>
-                            <select name="leave_type" required class="w-full rounded-xl px-4 py-2 border focus:outline-none focus:border-[#B08D57]" style="border-color: rgba(176, 141, 87, 0.3);">
-                                <option value="">اختر نوع الإجازة</option>
-                                <option value="مرضية">🤒 إجازة مرضية</option>
-                                <option value="عارضة">⚡ إجازة عارضة</option>
-                                <option value="سنوية">🌴 إجازة سنوية</option>
-                                <option value="بدون راتب">💰 إجازة بدون راتب</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نظام الإجازة</label>
-                            <div class="flex gap-3">
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="duration_type" value="days" checked onclick="toggleDurationType()"> <span>📅 أيام</span></label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="duration_type" value="hours" onclick="toggleDurationType()"> <span>⏰ ساعات</span></label>
-                            </div>
-                        </div>
-                        
-                        <div id="daysSection">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من تاريخ</label><input type="date" name="start_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
-                                <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى تاريخ</label><input type="date" name="end_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);"></div>
-                            </div>
-                        </div>
-                        
-                        <div id="hoursSection" style="display:none;">
-                            <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">التاريخ</label><input type="date" name="hours_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
-                            <div class="grid grid-cols-2 gap-3 mt-2">
-                                <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من الساعة</label><input type="time" name="start_time" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" step="60"></div>
-                                <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى الساعة</label><input type="time" name="end_time" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" step="60"></div>
-                            </div>
-                            <div class="mt-2"><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">عدد الساعات</label><input type="number" name="hours" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="مثال: 4" min="1" max="12"></div>
-                        </div>
-                        
-                        <div><textarea name="reason" rows="2" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="السبب (اختياري)"></textarea></div>
-                        
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="closeLeaveModal()" class="flex-1 py-2 rounded-xl transition" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">إلغاء</button>
-                            <button type="submit" class="flex-1 py-2 rounded-xl text-white transition hover:opacity-90" style="background: #B08D57;">إرسال الطلب</button>
-                        </div>
+                <div id="daysSection">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من تاريخ</label><input type="date" name="start_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
+                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى تاريخ</label><input type="date" name="end_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);"></div>
                     </div>
-                </form>
+                </div>
+                
+                <div id="hoursSection" style="display:none;">
+                    <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">التاريخ</label><input type="date" name="hours_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من الساعة</label><input type="time" name="start_time" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" step="60"></div>
+                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى الساعة</label><input type="time" name="end_time" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" step="60"></div>
+                    </div>
+                    <div class="mt-2"><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">عدد الساعات</label><input type="number" name="hours" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="مثال: 4" min="1" max="12"></div>
+                </div>
+                
+                <div><textarea name="reason" rows="2" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="السبب (اختياري)"></textarea></div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeLeaveModal()" class="flex-1 py-2 rounded-xl transition" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">إلغاء</button>
+                    <button type="submit" class="flex-1 py-2 rounded-xl text-white transition hover:opacity-90" style="background: #B08D57;">إرسال الطلب</button>
+                </div>
             </div>
-        </div>
-
+        </form>
+    </div>
+</div>
         {{-- نافذة سجل الإجازات --}}
         <div id="leaveHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
             <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
@@ -395,69 +396,74 @@
                 document.getElementById('leaveModal').classList.remove('flex'); 
             }
             
-            document.getElementById('leaveRequestForm')?.addEventListener('submit', async(e) => { 
-                e.preventDefault(); 
-                const form = e.target; 
-                const durationType = document.querySelector('input[name="duration_type"]:checked').value; 
-                let formData = { 
-                    leave_type: form.querySelector('select[name="leave_type"]').value, 
-                    duration_type: durationType, 
-                    reason: form.querySelector('textarea[name="reason"]').value || '' 
-                }; 
-                if(durationType === 'days') { 
-                    formData.start_date = form.querySelector('input[name="start_date"]').value; 
-                    formData.end_date = form.querySelector('input[name="end_date"]').value; 
-                } else { 
-                    formData.start_date = form.querySelector('input[name="hours_date"]').value; 
-                    formData.end_date = formData.start_date; 
-                    formData.start_time = form.querySelector('input[name="start_time"]').value; 
-                    formData.end_time = form.querySelector('input[name="end_time"]').value; 
-                    formData.hours = form.querySelector('input[name="hours"]').value; 
-                } 
-                if(!formData.leave_type) { 
-                    alert('الرجاء اختيار نوع الإجازة'); 
-                    return; 
-                } 
-                if(!formData.start_date) { 
-                    alert('الرجاء اختيار التاريخ'); 
-                    return; 
-                } 
-                if(durationType === 'days' && !formData.end_date) { 
-                    alert('الرجاء اختيار تاريخ الانتهاء'); 
-                    return; 
-                } 
-                if(durationType === 'hours' && (!formData.start_time || !formData.end_time)) { 
-                    alert('الرجاء اختيار وقت البداية والنهاية'); 
-                    return; 
-                } 
-                const btn = form.querySelector('button[type="submit"]'); 
-                btn.disabled = true; 
-                btn.innerHTML = 'جاري الإرسال...'; 
-                try { 
-                    const response = await fetch('{{ route("staff.leave.request") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    }); 
-                    const data = await response.json(); 
-                    if(data.success) { 
-                        alert('✅ تم إرسال طلب الإجازة بنجاح'); 
-                        closeLeaveModal(); 
-                        form.reset(); 
-                    } else { 
-                        alert('❌ حدث خطأ: ' + (data.message || 'حاولي مرة أخرى')); 
-                    } 
-                } catch(error) { 
-                    console.error(error); 
-                    alert('❌ حدث خطأ في الإرسال'); 
-                } finally { 
-                    btn.disabled = false; 
-                    btn.innerHTML = 'إرسال الطلب'; 
-                } 
-            });
+         document.getElementById('leaveRequestForm')?.addEventListener('submit', async(e) => { 
+    e.preventDefault(); 
+    const form = e.target; 
+    const durationType = document.querySelector('input[name="duration_type"]:checked').value; 
+    
+    let formData = { 
+        leave_type: form.querySelector('select[name="leave_type"]').value, 
+        duration_type: durationType, 
+        reason: form.querySelector('textarea[name="reason"]').value || '' 
+    }; 
+    
+    if(durationType === 'days') { 
+        formData.start_date = form.querySelector('input[name="start_date"]').value; 
+        formData.end_date = form.querySelector('input[name="end_date"]').value; 
+    } else { 
+        formData.start_date = form.querySelector('input[name="hours_date"]').value; 
+        formData.end_date = formData.start_date; 
+        formData.start_time = form.querySelector('input[name="start_time"]').value; 
+        formData.end_time = form.querySelector('input[name="end_time"]').value; 
+        formData.hours = form.querySelector('input[name="hours"]').value; 
+    } 
+    
+    if(!formData.leave_type) { 
+        alert('الرجاء اختيار نوع الإجازة'); 
+        return; 
+    } 
+    if(!formData.start_date) { 
+        alert('الرجاء اختيار التاريخ'); 
+        return; 
+    } 
+    if(durationType === 'days' && !formData.end_date) { 
+        alert('الرجاء اختيار تاريخ الانتهاء'); 
+        return; 
+    } 
+    if(durationType === 'hours' && (!formData.start_time || !formData.end_time)) { 
+        alert('الرجاء اختيار وقت البداية والنهاية'); 
+        return; 
+    } 
+    
+    const btn = form.querySelector('button[type="submit"]'); 
+    btn.disabled = true; 
+    btn.innerHTML = 'جاري الإرسال...'; 
+    
+    try { 
+        const response = await fetch('{{ route("staff.leave.request") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        }); 
+        const data = await response.json(); 
+        if(data.success) { 
+            alert('✅ تم إرسال طلب الإجازة بنجاح'); 
+            closeLeaveModal(); 
+            form.reset(); 
+        } else { 
+            alert('❌ حدث خطأ: ' + (data.message || 'حاولي مرة أخرى')); 
+        } 
+    } catch(error) { 
+        console.error(error); 
+        alert('❌ حدث خطأ في الإرسال'); 
+    } finally { 
+        btn.disabled = false; 
+        btn.innerHTML = 'إرسال الطلب'; 
+    } 
+});
             
             // ========== دوال سجل الإجازات ==========
             async function showLeaveHistory() { 

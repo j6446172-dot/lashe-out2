@@ -43,6 +43,20 @@ class LeaveRequest extends Model
         return $this->start_date->diffInDays($this->end_date) + 1;
     }
     
+    // تحويل نوع الإجازة من الكود إلى نص عربي
+    public function getLeaveTypeArabicAttribute()
+    {
+        return match($this->leave_type) {
+            'annual' => '🌴 إجازة سنوية',
+            'sick' => '🤒 إجازة مرضية',
+            'emergency' => '⚡ إجازة طارئة',
+            'unpaid' => '💰 إجازة بدون راتب',
+            'half_day' => '🌓 نصف يوم',
+            'swap' => '🔄 تبديل وردية',
+            default => '❓ ' . $this->leave_type
+        };
+    }
+    
     public function getStatusNameAttribute()
     {
         return match($this->status) {

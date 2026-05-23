@@ -13,7 +13,7 @@ class LeaveController extends Controller
     {
         try {
             $data = $request->validate([
-                'leave_type' => 'required|string',
+                'leave_type' => 'required|string|in:annual,sick,emergency,unpaid,half_day,swap',
                 'duration_type' => 'required|in:days,hours',
                 'start_date' => 'required|date',
                 'reason' => 'nullable|string|max:500'
@@ -65,7 +65,7 @@ class LeaveController extends Controller
             ->map(function($leave) {
                 return [
                     'id' => $leave->id,
-                    'leave_type' => $leave->leave_type,
+                    'leave_type' => $leave->leave_type_arabic,
                     'display_text' => $leave->display_text,
                     'status_name' => $leave->status_name,
                     'status_color' => $leave->status_color,
@@ -77,7 +77,6 @@ class LeaveController extends Controller
         return response()->json($leaves);
     }
     
-    // ✅ أضف int قبل $id
     public function show(int $id)
     {
         $leave = LeaveRequest::where('staff_id', Auth::id())
@@ -86,7 +85,7 @@ class LeaveController extends Controller
         
         return response()->json([
             'id' => $leave->id,
-            'leave_type' => $leave->leave_type,
+            'leave_type' => $leave->leave_type_arabic,
             'display_text' => $leave->display_text,
             'reason' => $leave->reason,
             'status_name' => $leave->status_name,

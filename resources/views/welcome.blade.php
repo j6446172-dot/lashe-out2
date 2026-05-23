@@ -210,85 +210,135 @@
             </div>
         </section>
 
-        <section id="employees" class="py-24">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <h2 class="text-4xl font-black mb-4" style="color: var(--luxury-dark);">خبيراتنا المحترفات</h2>
-                    <p class="font-bold" style="color: var(--luxury-brown);">جميعهن يقدمن كافة الخدمات المذكورة أعلاه بأعلى معايير الدقة</p>
+        
+<section id="about" class="py-24 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+            
+            <!-- الصورة -->
+            <div class="relative order-2 md:order-1">
+                
+                <div class="absolute -top-10 -right-10 w-64 h-64 rounded-full -z-10 opacity-40"
+                     style="background: var(--luxury-shadow);">
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                    <div class="glass-card p-8 rounded-[3rem] text-center shadow-sm">
-                        <img src="{{ asset('images/lina.jpeg') }}" class="w-48 h-48 mx-auto rounded-full object-cover border-4 shadow-md" style="border-color: var(--luxury-brown);" alt="لينا">
-                        <h4 class="text-2xl font-bold mb-2 mt-6" style="color: var(--luxury-dark);">لينا العتوم</h4>
-                        <p class="text-gray-500 mb-6 text-sm">خبرة 5 سنوات في فن الرموش، متقنة لجميع التقنيات العالمية.</p>
-                        <a href="https://instagram.com" class="transition hover:scale-110 inline-block" style="color: var(--luxury-brown);"><i class="fab fa-instagram text-3xl"></i></a>
-                    </div>
-                    <div class="glass-card p-8 rounded-[3rem] text-center shadow-sm">
-                        <img src="{{ asset('images/haya.jpeg') }}" class="w-48 h-48 mx-auto rounded-full object-cover border-4 shadow-md" style="border-color: var(--luxury-brown);" alt="هيا">
-                        <h4 class="text-2xl font-bold mb-2 mt-6" style="color: var(--luxury-dark);">هيا الكردي</h4>
-                        <p class="text-gray-500 mb-6 text-sm">متخصصة في رسم العين وتنسيق الرموش بما يناسب شكل الوجه.</p>
-                        <a href="https://instagram.com" class="transition hover:scale-110 inline-block" style="color: var(--luxury-brown);"><i class="fab fa-instagram text-3xl"></i></a>
-                    </div>
-                    <div class="glass-card p-8 rounded-[3rem] text-center shadow-sm">
-                        <img src="{{ asset('images/nada.jpeg') }}" class="w-48 h-48 mx-auto rounded-full object-cover border-4 shadow-md" style="border-color: var(--luxury-brown);" alt="ندى">
-                        <h4 class="text-2xl font-bold mb-2 mt-6" style="color: var(--luxury-dark);">ندى جابر</h4>
-                        <p class="text-gray-500 mb-6 text-sm">مدربة معتمدة في تقنيات الويسبـي والأنمي ومبدعة في كافة الموديلات.</p>
-                        <a href="https://instagram.com" class="transition hover:scale-110 inline-block" style="color: var(--luxury-brown);"><i class="fab fa-instagram text-3xl"></i></a>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <section id="about" class="py-24 overflow-hidden">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="grid md:grid-cols-2 gap-16 items-center">
-                    <div class="relative order-2 md:order-1">
-                        <div class="absolute -top-10 -right-10 w-64 h-64 rounded-full -z-10 opacity-50" style="background: var(--luxury-shadow);"></div>
-                        <img src="{{ asset('images/about.jpeg') }}" class="rounded-[3rem] shadow-2xl border-4 border-white/50 w-full h-[450px] object-cover">
-                    </div>
-                    <div class="text-right order-1 md:order-2">
-                        <h2 class="text-4xl font-black mb-8" style="color: var(--luxury-dark);">لماذا اختيار استوديو Lashe Out؟</h2>
-                        <p class="text-gray-600 text-lg leading-relaxed mb-8">
-                            نحن لسنا مجرد مركز تجميل، نحن وجهة لكل امرأة تبحث عن الثقة والتميز. بدأنا في عمان كأول استوديو متخصص حصرياً في تركيب الرموش بأحدث الصيحات العالمية.
-                        </p>
-                        <ul class="space-y-4">
-                            <li class="flex items-center justify-end gap-3 font-bold" style="color: var(--luxury-dark);">
-                                <span>100% استخدام مواد طبية آمنة</span>
-                                <i class="fas fa-check-circle" style="color: var(--luxury-brown);"></i>
-                            </li>
-                            <li class="flex items-center justify-end gap-3 font-bold" style="color: var(--luxury-dark);">
-                                <span>بيئة معقمة ومريحة جداً</span>
-                                <i class="fas fa-check-circle" style="color: var(--luxury-brown);"></i>
-                            </li>
-                            <li class="flex items-center justify-end gap-3 font-bold" style="color: var(--luxury-dark);">
-                                <span>نتائج تدوم لأسابيع مع الحفاظ على رموشك الطبيعية</span>
-                                <i class="fas fa-check-circle" style="color: var(--luxury-brown);"></i>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                <img src="{{ asset('images/about.jpeg') }}"
+                     class="rounded-[3rem] shadow-2xl border-4 border-white/50 w-full h-[500px] object-cover">
+
             </div>
-        </section>
+
+            <!-- النص -->
+            <div class="text-right order-1 md:order-2">
+
+                <span class="uppercase tracking-[4px] text-sm font-bold mb-3 block"
+                      style="color: var(--luxury-brown);">
+                    Luxury Lash Experience
+                </span>
+
+                <h2 class="text-5xl font-black leading-tight mb-8"
+                    style="color: var(--luxury-dark);">
+                    لماذا تختارين
+                    <span style="color: var(--luxury-brown);">
+                        Lashe Out؟
+                    </span>
+                </h2>
+
+                <p class="text-gray-600 text-lg leading-loose mb-8">
+                    في Lashe Out نهتم بكل تفصيلة صغيرة لتمنحك تجربة فاخرة ومريحة.
+                    نستخدم أفضل أنواع الرموش والمواد الطبية الآمنة لنضمن لك
+                    إطلالة أنثوية جذابة تدوم طويلاً وتحافظ على صحة رموشك الطبيعية.
+                </p>
+
+                <p class="text-gray-500 leading-loose mb-10">
+                    نقدم أحدث صيحات الرموش العالمية مثل
+                    Classic, Wet, Wispy, Volume & Anime Sets
+                    بأيدي خبيرات محترفات وبأعلى معايير التعقيم والجودة داخل أجواء
+                    هادئة وفاخرة في قلب عمّان ✨
+                </p>
+
+                <!-- المميزات -->
+                <div class="space-y-5">
+
+                    <div class="glass-card rounded-2xl p-4 flex items-center justify-end gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                             style="background: rgba(200,162,122,0.15);">
+                            <i class="fas fa-shield-heart text-xl"
+                               style="color: var(--luxury-brown);"></i>
+                        </div>
+
+                        <div>
+                            <h4 class="font-black text-lg"
+                                style="color: var(--luxury-dark);">
+                                مواد آمنة وطبية
+                            </h4>
+
+                            <p class="text-gray-500 text-sm">
+                                استخدام منتجات عالية الجودة مناسبة للعين الحساسة
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-4 flex items-center justify-end gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                             style="background: rgba(200,162,122,0.15);">
+                            <i class="fas fa-sparkles text-xl"
+                               style="color: var(--luxury-brown);"></i>
+                        </div>
+
+                        <div>
+                            <h4 class="font-black text-lg"
+                                style="color: var(--luxury-dark);">
+                                أحدث صيحات الرموش
+                            </h4>
+
+                            <p class="text-gray-500 text-sm">
+                                جميع التصاميم العصرية مثل Wet و Anime و Wispy
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-4 flex items-center justify-end gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                             style="background: rgba(200,162,122,0.15);">
+                            <i class="fas fa-heart text-xl"
+                               style="color: var(--luxury-brown);"></i>
+                        </div>
+
+                        <div>
+                            <h4 class="font-black text-lg"
+                                style="color: var(--luxury-dark);">
+                                نتائج تدوم طويلاً
+                            </h4>
+
+                            <p class="text-gray-500 text-sm">
+                                ثبات ممتاز مع الحفاظ على مظهر طبيعي فاخر
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
 
         <footer class="glass-card py-8 mt-12">
             <div class="max-w-7xl mx-auto px-6 text-center">
-                <div class="flex justify-center gap-8 mb-6">
-                    <a href="#" class="group relative">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg" style="background: rgba(200, 162, 122, 0.15); color: var(--luxury-brown);">
-                            <i class="fab fa-instagram text-xl"></i>
-                        </div>
-                    </a>
-                    <a href="#" class="group relative">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg" style="background: rgba(200, 162, 122, 0.15); color: var(--luxury-brown);">
-                            <i class="fab fa-tiktok text-xl"></i>
-                        </div>
-                    </a>
-                    <a href="#" class="group relative">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg" style="background: rgba(200, 162, 122, 0.15); color: var(--luxury-brown);">
-                            <i class="fab fa-whatsapp text-xl"></i>
-                        </div>
-                    </a>
-                </div>
+
+              <div class="text-center mt-4">
+    <a href="https://instagram.com/lasheout" 
+       target="_blank"
+       class="inline-flex items-center gap-2 font-bold transition hover:scale-105"
+       style="color: #C8A27A;">
+        
+        <i class="fab fa-instagram text-2xl"></i>
+        <span>تابعينا على إنستغرام</span>
+    </a>
+</div>
                 
                 <p class="text-gray-400 text-sm">©️ 2026 <span style="color: var(--luxury-brown);">LASHE OUT</span> STUDIO</p>
                 <p class="text-gray-400 text-xs mt-1">عمان، الأردن</p>

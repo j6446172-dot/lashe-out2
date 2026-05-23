@@ -87,24 +87,46 @@ class ChatController extends Controller
         return response()->json($messages);
     }
 
-   public function markAsRead()
+public function markAsRead()
 {
     $owner = $this->getOwner();
 
-    ChatMessage::where('to_user_id', Auth::id())
-        ->where('from_user_id', $owner?->id)
-        ->where('is_read', false)
-        ->update(['is_read' => true]);
+    if (!$owner) {
+        return response()->json([
+            'success' => false
+        ]);
+    }
 
-    return response()->json(['success' => true]);
+    ChatMessage::where('to_user_id', Auth::id())
+        ->where('from_user_id', $owner->id)
+        ->where('is_read', false)
+        ->update([
+            'is_read' => true
+        ]);
+
+    return response()->json([
+        'success' => true
+    ]);
 }
 
-    public function getUnreadCount()
-    {
-        $count = ChatMessage::where('to_user_id', Auth::id())
-            ->where('is_read', false)
-            ->count();
+   public function getUnreadCount()
+{
+    $owner = $this->getOwner();
 
-        return response()->json(['count' => $count]);
+    if (!$owner) {
+        return response()->json([
+            'count' => 0
+        ]);
     }
+
+    $count = ChatMessage::where('to_user_id', Auth::id())
+        ->where('from_user_id', $owner->id)
+        ->where('is_read', false)
+        ->count();
+
+    return response()->json([
+        'count' => $count
+    ]);
+}
+
 }
