@@ -81,7 +81,7 @@ class StaffController extends Controller
     { 
         User::create([
             'name' => $request->name, 'email' => $request->email, 'phone' => $request->phone,
-            'password' => Hash::make('password'), 'role' => 'staff',
+            'password' => Hash::make($request->password),  'role' => 'staff',
             'salary' => $request->salary ?? 350, 'specialty' => $request->specialty ?? ''
         ]); 
         return response()->json(['success' => true]); 

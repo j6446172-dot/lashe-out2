@@ -28,22 +28,23 @@
             <h1 class="text-2xl font-bold" style="color: #F3EDE6;">👑 مرحباً {{ auth()->user()->name }}! يومك سعيد ✨</h1>
             <p class="text-sm mt-1" style="color: rgba(243, 237, 230, 0.8);">📅 {{ \Carbon\Carbon::now()->locale('ar')->translatedFormat('l j F Y') }}</p>
         </div>
+        
         @if($pendingLeavesCount > 0)
-<div style="background: rgba(245, 158, 11, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid #f59e0b; text-align: right;">
-    <h3 style="font-weight: bold; margin-bottom: 10px; color: #2B1E1A;">🔔 طلبات إجازة معلقة ({{ $pendingLeavesCount }})</h3>
-    @foreach($pendingLeaves as $leave)
-    <div style="background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px;">
-        <p><strong>{{ $leave->staff->name }}</strong></p>
-        <p style="color: #7C8574; font-size: 14px;">{{ $leave->leave_type }} - {{ $leave->start_date }}</p>
-        <div style="margin-top: 8px;">
-            <a href="{{ route('owner.leaves.approve', $leave->id) }}" style="background: #10b981; color: white; padding: 6px 18px; border-radius: 8px; text-decoration: none; display: inline-block; margin-left: 8px;">✅ قبول</a>
-            <a href="{{ route('owner.leaves.reject', $leave->id) }}" style="background: #ef4444; color: white; padding: 6px 18px; border-radius: 8px; text-decoration: none; display: inline-block;">❌ رفض</a>
+        <div style="background: rgba(245, 158, 11, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid #f59e0b; text-align: right;">
+            <h3 style="font-weight: bold; margin-bottom: 10px; color: #2B1E1A;">🔔 طلبات إجازة معلقة ({{ $pendingLeavesCount }})</h3>
+            @foreach($pendingLeaves as $leave)
+            <div style="background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px;">
+                <p><strong>{{ $leave->staff->name }}</strong></p>
+                <p style="color: #7C8574; font-size: 14px;">{{ $leave->leave_type }} - {{ $leave->start_date }}</p>
+                <div style="margin-top: 8px;">
+                    <span onclick="showLeaveDetails({{ $leave->id }})" style="cursor:pointer; background: rgba(176,141,87,0.1); color: #B08D57; padding: 6px 16px; border-radius: 8px; display: inline-block; margin-left: 5px;">👁️ تفاصيل</span>
+                    <a href="{{ route('owner.leaves.approve', $leave->id) }}" style="background: #10b981; color: white; padding: 6px 18px; border-radius: 8px; text-decoration: none; display: inline-block; margin-left: 8px;">✅ قبول</a>
+                    <a href="{{ route('owner.leaves.reject', $leave->id) }}" style="background: #ef4444; color: white; padding: 6px 18px; border-radius: 8px; text-decoration: none; display: inline-block;">❌ رفض</a>
+                </div>
+            </div>
+            @endforeach
         </div>
-    </div>
-    @endforeach
-</div>
-@endif
-
+        @endif
         <div class="grid grid-cols-3 gap-4 mb-6">
             <a href="#" onclick="event.preventDefault(); document.getElementById('financePasswordModal').classList.remove('hidden'); document.getElementById('financePasswordModal').classList.add('flex')" class="rounded-xl p-5 text-center transition hover:-translate-y-1 hover:shadow-lg" style="text-decoration: none; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                 <div class="text-4xl mb-2">💰</div><p class="font-bold text-lg" style="color: #B08D57;">المالية</p><p class="text-xs mt-1" style="color: #7C8574;">🔒 محمي بكلمة مرور</p>
@@ -112,5 +113,21 @@ new Chart(document.getElementById('staffPerformanceChart'), {
     type: 'bar', data: { labels: {!! json_encode(array_column($staffPerformance ?? [], 'name')) !!}, datasets: [{ label: 'الحجوزات', data: {!! json_encode(array_column($staffPerformance ?? [], 'total_bookings')) !!}, backgroundColor: '#B08D57', borderRadius: 8 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y' }
 });
+</script>
+
+<script>
+function showLeaveDetails(id) {
+    fetch('/owner/leaves/' + id + '/details')
+        .then(r => r.json())
+        .then(data => {
+            alert(
+                '👩‍💼 الموظفة: ' + data.staff_name + '\n' +
+                '📌 النوع: ' + data.leave_type + '\n' +
+                '📅 ' + data.display_text + '\n' +
+                (data.reason ? '📝 السبب: ' + data.reason + '\n' : '') +
+                '📊 الحالة: ' + data.status
+            );
+        });
+}
 </script>
 @endsection

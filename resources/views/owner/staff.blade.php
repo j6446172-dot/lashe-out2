@@ -73,11 +73,23 @@
                                     <button onclick="showDetail({{ $staff['id'] }})" class="text-xl hover:scale-110 transition">👁️</button>
                                 </td>
                                 <td class="p-3">
+                                    @php
+                                        $unread = \DB::table('chat_messages')
+                                            ->where('from_user_id', $staff['id'])
+                                            ->where('to_user_id', auth()->id())
+                                            ->where('is_read', 0)
+                                            ->count();
+                                    @endphp
                                     <button onclick="openChatWithStaff({{ $staff['id'] }}, '{{ addslashes($staff['name']) }}')" 
-                                            class="px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 transition hover:bg-[#B08D57] hover:text-white"
+                                            class="px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 transition hover:bg-[#B08D57] hover:text-white relative"
                                             style="border: 1px solid #B08D57; color: #B08D57; background: rgba(176, 141, 87, 0.05);">
                                         <i class="fas fa-comment-dots"></i>
                                         <span>تواصل</span>
+                                        @if($unread > 0)
+                                            <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">
+                                                {{ $unread }}
+                                            </span>
+                                        @endif
                                     </button>
                                 </td>
                             </tr>
@@ -123,6 +135,7 @@
                 <input type="email" name="email" placeholder="الإيميل" required class="w-full mb-3 px-4 py-3 rounded-xl" style="border:1px solid rgba(176,141,87,0.3);">
                 <input type="text" name="phone" placeholder="الهاتف" class="w-full mb-3 px-4 py-3 rounded-xl" style="border:1px solid rgba(176,141,87,0.3);">
                 <input type="text" name="specialty" placeholder="التخصص" class="w-full mb-3 px-4 py-3 rounded-xl" style="border:1px solid rgba(176,141,87,0.3);">
+                <input type="password" name="password" placeholder="كلمة المرور" required class="w-full mb-3 px-4 py-3 rounded-xl" style="border:1px solid rgba(176,141,87,0.3);">
                 <input type="number" name="salary" placeholder="الراتب" value="350" class="w-full mb-4 px-4 py-3 rounded-xl" style="border:1px solid rgba(176,141,87,0.3);">
                 <div class="flex gap-3">
                     <button type="button" onclick="addStaff()" class="flex-1 py-3 rounded-xl font-bold" style="background:#B08D57;color:white;">✅ إضافة</button>
@@ -246,6 +259,12 @@
         
         if (staffChatInterval) clearInterval(staffChatInterval);
         staffChatInterval = setInterval(() => loadStaffMessages(currentStaffId), 3000);
+        
+        // تعليم الرسائل مقروءة
+        fetch(`/owner/chat/mark-read/${staffId}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        });
     }
 
     function closeStaffChat() {

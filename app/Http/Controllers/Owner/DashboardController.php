@@ -104,4 +104,17 @@ public function rejectLeave(int $id)
     return back()->with('success', 'تم الرفض ❌');
 }
 
+public function leaveDetails($id)
+{
+    $leave = \App\Models\LeaveRequest::with('staff')->findOrFail($id);
+    return response()->json([
+        'staff_name' => $leave->staff->name,
+        'leave_type' => $leave->leave_type,
+        'display_text' => $leave->display_text,
+        'reason' => $leave->reason,
+        'hours' => $leave->hours,
+        'status' => $leave->status_name
+    ]);
+}
+
 }

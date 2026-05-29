@@ -225,6 +225,7 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
     Route::get('/staff-schedule/{id}', [ScheduleController::class, 'getStaffSchedule']);
     Route::post('/staff-schedule/save', [ScheduleController::class, 'saveStaffSchedule']);
     Route::get('/leaves/approve/{id}', [DashboardController::class, 'approveLeave'])->name('leaves.approve');
+    Route::get('/leaves/{id}/details', [DashboardController::class, 'leaveDetails'])->name('leaves.details');
     Route::get('/leaves/reject/{id}', [DashboardController::class, 'rejectLeave'])->name('leaves.reject');
     
     // ========== شات المالك مع الموظفين ==========
