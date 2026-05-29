@@ -54,17 +54,18 @@ class ChatController extends Controller
         return response()->json(['count' => $count]);
     }
 
-  public function markAsRead(Request $request)
+public function markAsRead(Request $request)
 {
-    $query = ChatMessage::where('to_user_id', Auth::id())
-        ->where('is_read', false);
+    ChatMessage::where('to_user_id', Auth::id())
+        ->where('from_user_id', $request->staff_id)
+        ->where('is_read', false)
+        ->update([
+            'is_read' => true
+        ]);
 
-    if ($request->staff_id) {
-        $query->where('from_user_id', $request->staff_id);
-    }
-
-    $query->update(['is_read' => true]);
-
-    return response()->json(['success' => true]);
+    return response()->json([
+        'success' => true
+    ]);
 }
+
 }
