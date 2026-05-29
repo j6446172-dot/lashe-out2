@@ -247,7 +247,7 @@
             <div class="max-w-7xl mx-auto px-6 text-center">
 
               <div class="text-center mt-4">
-    <a href="https://instagram.com/lasheout" 
+    <a href="https://www.instagram.com/p/DT5zSt2DTgQ/?igsh=NDU5enU2MGxmNzVn" 
        target="_blank"
        class="inline-flex items-center gap-2 font-bold transition hover:scale-105"
        style="color: #C8A27A;">
