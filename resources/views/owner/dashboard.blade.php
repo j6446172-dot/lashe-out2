@@ -52,9 +52,49 @@
             <a href="{{ route('owner.bookings') }}" class="rounded-xl p-5 text-center transition hover:-translate-y-1 hover:shadow-lg" style="text-decoration: none; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                 <div class="text-4xl mb-2">📅</div><p class="font-bold text-lg" style="color: #B08D57;">الحجوزات</p><p class="text-xs mt-1" style="color: #7C8574;">{{ $todayBookings ?? 0 }} اليوم</p>
             </a>
-            <a href="{{ route('owner.staff') }}" class="rounded-xl p-5 text-center transition hover:-translate-y-1 hover:shadow-lg" style="text-decoration: none; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                <div class="text-4xl mb-2">👩‍💼</div><p class="font-bold text-lg" style="color: #B08D57;">الموظفات</p><p class="text-xs mt-1" style="color: #7C8574;">إدارة الفريق</p>
-            </a>
+
+
+            
+
+     <a href="{{ route('owner.staff') }}"
+   onclick="let badge = this.querySelector('.notification-badge'); if(badge) badge.style.display = 'none';"
+   class="rounded-xl p-5 text-center transition hover:-translate-y-1 hover:shadow-lg"
+   style="position: relative; text-decoration: none; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
+
+    {{-- الدائرة الحمراء للإشعارات --}}
+    @if(($unreadStaffMessages ?? 0) > 0)
+        <span class="notification-badge" style="
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        ">
+            {{ $unreadStaffMessages }}
+        </span>
+    @endif
+
+    <div class="text-4xl mb-2">👩‍💼</div>
+
+    <p class="font-bold text-lg" style="color: #B08D57;">
+        الموظفات
+    </p>
+
+    <p class="text-xs mt-1" style="color: #7C8574;">
+        إدارة الفريق
+    </p>
+</a>
             <a href="{{ route('owner.customers') }}" class="rounded-xl p-5 text-center transition hover:-translate-y-1 hover:shadow-lg" style="text-decoration: none; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                 <div class="text-4xl mb-2">👥</div><p class="font-bold text-lg" style="color: #B08D57;">العملاء</p><p class="text-xs mt-1" style="color: #7C8574;">{{ $totalCustomers ?? 0 }} عميلة</p>
             </a>
@@ -71,6 +111,7 @@
                 <h4 class="font-bold mb-3" style="color: #2B1E1A;">📈 نمو العملاء</h4>
                 <div style="position: relative; height: 250px;"><canvas id="customerGrowthChart"></canvas></div>
             </div>
+            
             <div class="rounded-xl p-5" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                 <h4 class="font-bold mb-3" style="color: #2B1E1A;">👩‍💼 أداء الموظفات</h4>
                 <div style="position: relative; height: 250px;"><canvas id="staffPerformanceChart"></canvas></div>
