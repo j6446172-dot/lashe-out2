@@ -71,6 +71,7 @@
                                 <td class="p-3 font-bold" style="color: #2B1E1A;">{{ number_format($staff['net_salary'] ?? 0) }} د.أ</td>
                                 <td class="p-3">
                                     <button onclick="showDetail({{ $staff['id'] }})" class="text-xl hover:scale-110 transition">👁️</button>
+                                    <button onclick="deleteStaff({{ $staff['id'] }}, '{{ addslashes($staff['name']) }}')" class="text-xl hover:scale-110 transition" style="color: #ef4444;">🗑️</button>
                                 </td>
                                 <td class="p-3">
                                     @php
@@ -394,5 +395,18 @@
         const date = new Date(dateString);
         return date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
     }
+
+    function deleteStaff(id, name) {
+    if (confirm('هل أنت متأكدة من حذف ' + name + '؟')) {
+        fetch('/owner/staff/delete/' + id, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) location.reload();
+        });
+    }
+}
 </script>
 @endsection
