@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use App\Models\Review;
+use App\Models\ChatMessage;
 
 class DashboardController extends Controller
 {
@@ -77,20 +78,40 @@ class DashboardController extends Controller
 
 
         // 📋 طلبات الإجازة المعلقة
-       $pendingLeaves = LeaveRequest::where('status', 'pending')
+$pendingLeaves = LeaveRequest::where('status', 'pending')
     ->with('staff')
     ->latest()
     ->get();
-         $pendingLeavesCount = $pendingLeaves->count();
 
-         
-        // إرسال جميع البيانات للصفحة
-        return view('owner.dashboard', compact(
-            'totalCustomers', 'monthlyRevenue', 'netProfit', 'returnRate',
-            'averageRating', 'todayBookings', 'todayBookingsList', 'staffPerformance',
-            'salaries', 'materials', 'rent', 'chartMonths', 'chartRevenue',
-            'customerGrowthMonths', 'customerGrowthData', 'pendingLeaves', 'pendingLeavesCount'
-        ));
+$pendingLeavesCount = $pendingLeaves->count();
+
+
+$unreadStaffMessages = ChatMessage::where('to_user_id', request()->user()->id)
+    ->where('is_read', false)
+    ->count();
+
+// إرسال جميع البيانات للصفحة
+return view('owner.dashboard', compact(
+    'totalCustomers',
+    'monthlyRevenue',
+    'netProfit',
+    'returnRate',
+    'averageRating',
+    'todayBookings',
+    'todayBookingsList',
+    'staffPerformance',
+    'salaries',
+    'materials',
+    'rent',
+    'chartMonths',
+    'chartRevenue',
+    'customerGrowthMonths',
+    'customerGrowthData',
+    'pendingLeaves',
+    'pendingLeavesCount',
+    'unreadStaffMessages'
+));
+
     }
       public function approveLeave(int $id)
 {

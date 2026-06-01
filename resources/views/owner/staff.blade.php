@@ -246,27 +246,67 @@
     let staffChatInterval = null;
     let currentStaffId = null;
     let lastStaffMessageId = 0;
+function openChatWithStaff(staffId, staffName) {
+    currentStaffId = staffId;
 
-    function openChatWithStaff(staffId, staffName) {
-        currentStaffId = staffId;
-        document.getElementById('chatStaffName').innerHTML = `<i class="fas fa-comment-dots ml-1"></i> محادثة مع ${staffName}`;
-        document.getElementById('staffChatId').value = staffId;
-        
-        const modal = document.getElementById('staffChatModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        
-        loadStaffMessages(staffId);
-        
-        if (staffChatInterval) clearInterval(staffChatInterval);
-        staffChatInterval = setInterval(() => loadStaffMessages(currentStaffId), 3000);
-        
-        // تعليم الرسائل مقروءة
-        fetch(`/owner/chat/mark-read/${staffId}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-        });
+    document.getElementById('chatStaffName').innerHTML =
+        `<i class="fas fa-comment-dots ml-1"></i> محادثة مع ${staffName}`;
+
+    document.getElementById('staffChatId').value = staffId;
+
+    const modal = document.getElementById('staffChatModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    loadStaffMessages(staffId);
+
+    if (staffChatInterval) {
+        clearInterval(staffChatInterval);
     }
+
+    staffChatInterval = setInterval(() => {
+        loadStaffMessages(currentStaffId);
+    }, 3000);
+
+    fetch('{{ route("owner.chat.mark-read") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            staff_id: staffId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        const buttons = document.querySelectorAll('button');
+
+        buttons.forEach(btn => {
+
+            const onclickAttr = btn.getAttribute('onclick');
+
+            if (
+                onclickAttr &&
+                onclickAttr.includes(`openChatWithStaff(${staffId}`)
+            ) {
+
+                const badge = btn.querySelector(
+                    'span[style*="background: #ef4444"]'
+                );
+
+                if (badge) {
+                    badge.remove();
+                }
+            }
+        });
+
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
 
     function closeStaffChat() {
         const modal = document.getElementById('staffChatModal');
