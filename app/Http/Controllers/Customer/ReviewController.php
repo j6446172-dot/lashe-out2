@@ -16,43 +16,50 @@ class ReviewController extends Controller
             ->with('booking.staff')
             ->orderBy('created_at', 'desc')
             ->get();
+        
+        // الحجوزات التي تحتاج تقييم (مكتملة وما عليها تقييم)
+        $needReview = Auth::user()->bookings()
+            ->where('status', 'completed')
+            ->whereDoesntHave('review')
+            ->orderBy('booking_date', 'desc')
+            ->get();
             
-        return view('customer.reviews.index', compact('reviews'));
+        return view('customer.reviews.index', compact('reviews', 'needReview'));
     }
 
-    public function create(int $bookingId)  // ✅ أضف int قبل $bookingId
+    public function create(Booking $booking)
     {
-        $booking = Booking::where('user_id', Auth::id())
-            ->where('id', $bookingId)
-            ->where(function($query) {
-                $query->where('status', 'completed')
-                      ->orWhere(function($q) {
-                          $q->where('status', 'confirmed')
-                            ->where('booking_date', '<', date('Y-m-d'));
-                      });
-            })
-            ->firstOrFail();
-            
+        // التأكد أن الحجز يخص العميل المسجل
+        if ($booking->user_id !== Auth::id()) {
+            abort(403, 'هذا الحجز ليس لك');
+        }
+        
+        // التأكد أن الحجز مكتمل
+        if ($booking->status !== 'completed') {
+            return redirect()->route('customer.reviews.index')
+                ->with('error', 'لا يمكن تقييم خدمة لم تكتمل بعد');
+        }
+        
+        // التأكد أنه ما فيه تقييم مسبق
+        if ($booking->review) {
+            return redirect()->route('customer.reviews.index')
+                ->with('error', 'تم تقييم هذه الخدمة مسبقاً');
+        }
+        
         return view('customer.reviews.create', compact('booking'));
     }
 
-    public function store(Request $request, int $bookingId)  // ✅ أضف int قبل $bookingId
+    public function store(Request $request, Booking $booking)
     {
+        // التأكد أن الحجز يخص العميل المسجل
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+        
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
         ]);
-
-        $booking = Booking::where('user_id', Auth::id())
-            ->where('id', $bookingId)
-            ->where(function($query) {
-                $query->where('status', 'completed')
-                      ->orWhere(function($q) {
-                          $q->where('status', 'confirmed')
-                            ->where('booking_date', '<', date('Y-m-d'));
-                      });
-            })
-            ->firstOrFail();
 
         // منع التقييم المكرر
         $existing = Review::where('booking_id', $booking->id)->first();

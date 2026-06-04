@@ -24,20 +24,57 @@
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
+                            <th class="p-3 text-right" style="min-width: 200px;">📍 العنوان التفصيلي</th>
                             <th class="p-3 text-right">الحالة</th>
                             <th class="p-3 text-right">إجراء</th>
-                        </tr>
+                         </td>
                     </thead>
                     <tbody>
                         @forelse($bookings ?? [] as $booking)
                         <tr style="border-bottom: 1px solid #ddd;">
                             <td class="p-3">{{ $booking->booking_date }}</td>
                             <td class="p-3">{{ $booking->booking_time }}</td>
-                            {{-- 🔥 تصحيح: استخدام user بدلاً من customer --}}
                             <td class="p-3">{{ $booking->user->name ?? 'زبونة' }}</td>
                             <td class="p-3">{{ $booking->service_type ?? 'خدمة' }}</td>
                             <td class="p-3">{{ $booking->price ? number_format($booking->price) . ' ج.م' : '—' }}</td>
-                            <td class="p-3">{{ $booking->location ?? '—' }}</td>
+                            <td class="p-3">
+                                @if($booking->location == 'home')
+                                    <span class="text-xs font-bold" style="color: #B08D57;">🏠 خدمة منزلية</span>
+                                @else
+                                    <span class="text-xs" style="color: #7C8574;">🏢 في الصالون</span>
+                                @endif
+                            </td>
+                            <td class="p-3">
+                                @if($booking->location == 'home')
+                                    @if($booking->address_text || $booking->building_number || $booking->apartment)
+                                        <div class="text-sm" style="color: #2B1E1A;">
+                                            @if($booking->address_text)
+                                                <div class="mb-1">{{ Str::limit($booking->address_text, 60) }}</div>
+                                            @endif
+                                            @if($booking->building_number)
+                                                <span class="text-xs" style="color: #7C8574;">🏢 بناية: {{ $booking->building_number }}</span>
+                                            @endif
+                                            @if($booking->apartment)
+                                                <span class="text-xs mr-2" style="color: #7C8574;">🏠 {{ $booking->apartment }}</span>
+                                            @endif
+                                            @if($booking->latitude && $booking->longitude)
+                                                <div class="mt-1">
+                                                    <a href="https://www.google.com/maps?q={{ $booking->latitude }},{{ $booking->longitude }}" 
+                                                       target="_blank"
+                                                       class="text-xs font-bold hover:underline inline-flex items-center gap-1"
+                                                       style="color: #B08D57;">
+                                                        <i class="fas fa-map-marker-alt"></i> فتح الموقع
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-400">لم يتم إضافة عنوان</span>
+                                    @endif
+                                @else
+                                    <span class="text-xs text-gray-400">—</span>
+                                @endif
+                            </td>
                             <td class="p-3">
                                 @if($booking->status == 'confirmed')
                                     <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">✅ مؤكد</span>
@@ -50,21 +87,23 @@
                                 @endif
                             </td>
                             <td class="p-3">
-                                <form action="{{ route('staff.booking.update-status', $booking->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('PUT')
-                                    <select name="status" onchange="this.form.submit()" class="text-sm border rounded px-2 py-1">
-                                        <option value="pending" {{ $booking->status == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
-                                        <option value="confirmed" {{ $booking->status == 'confirmed' ? 'selected' : '' }}>تأكيد</option>
-                                        <option value="completed" {{ $booking->status == 'completed' ? 'selected' : '' }}>مكتمل</option>
-                                        <option value="cancelled" {{ $booking->status == 'cancelled' ? 'selected' : '' }}>ملغي</option>
-                                    </select>
-                                </form>
+                                <div class="flex gap-2 items-center">
+                                    <form action="{{ route('staff.booking.update-status', $booking->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <select name="status" onchange="this.form.submit()" class="text-sm border rounded px-2 py-1">
+                                            <option value="pending" {{ $booking->status == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
+                                            <option value="confirmed" {{ $booking->status == 'confirmed' ? 'selected' : '' }}>تأكيد</option>
+                                            <option value="completed" {{ $booking->status == 'completed' ? 'selected' : '' }}>مكتمل</option>
+                                            <option value="cancelled" {{ $booking->status == 'cancelled' ? 'selected' : '' }}>ملغي</option>
+                                        </select>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center p-8 text-gray-500">
+                            <td colspan="9" class="text-center p-8 text-gray-500">
                                 <i class="fas fa-calendar-times text-4xl mb-2 block"></i>
                                 لا توجد حجوزات
                             </td>
@@ -74,7 +113,6 @@
                 </table>
             </div>
             
-            {{-- إضافة روابط التصفح (Pagination) --}}
             @if(isset($bookings) && method_exists($bookings, 'links'))
                 <div class="mt-4">
                     {{ $bookings->links() }}

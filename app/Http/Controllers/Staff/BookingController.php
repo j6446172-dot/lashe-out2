@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    /**
-     * عرض جميع حجوزات الموظف
-     *
-     * @return \Illuminate\View\View
-     */
     public function index()
     {
         $staffId = Auth::id();
@@ -27,24 +22,22 @@ class BookingController extends Controller
         return view('staff.bookings', compact('bookings'));
     }
 
-    /**
-     * تحديث حالة الحجز
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function updateStatus(Request $request, int $id)
     {
-        $booking = Booking::where('staff_id', Auth::id())
-            ->where('id', $id)
-            ->firstOrFail();
+        $booking = Booking::findOrFail($id);
         
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,completed,cancelled'
         ]);
         
+        $oldStatus = $booking->status;
         $booking->update($validated);
+        
+        // إذا تم تغيير الحالة إلى 'completed'، خلص وارجع لصفحة الموظفة
+        if ($validated['status'] == 'completed' && $oldStatus != 'completed') {
+            return redirect()->route('staff.bookings')
+                ->with('success', '✅ تم إكمال الخدمة بنجاح!');
+        }
         
         return back()->with('success', 'تم تحديث حالة الحجز بنجاح');
     }

@@ -24,6 +24,66 @@
                     </div>
                 @endif
 
+                {{-- ========== 🔥 قسم الخدمات التي تحتاج تقييم (يظهر فقط عند وجود خدمات) ========== --}}
+                @php
+                    $needReview = auth()->user()->bookings()
+                        ->where('status', 'completed')
+                        ->where('service_type', '!=', 'removal')
+                        ->whereDoesntHave('review')
+                        ->orderBy('booking_date', 'desc')
+                        ->get();
+                @endphp
+
+                @if($needReview->isNotEmpty())
+                    <div class="mb-6 rounded-2xl overflow-hidden shadow-sm"
+                         style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.2);">
+                        <div class="px-5 py-3" style="background: rgba(176, 141, 87, 0.12);">
+                            <div class="flex items-center justify-end gap-2">
+                                <i class="fas fa-star" style="color: #B08D57;"></i>
+                                <span class="font-bold" style="color: #2B1E1A;">⭐ خدماتك تحتاج تقييم</span>
+                                <span class="px-2 py-0.5 rounded-full text-xs" style="background: #B08D57; color: #F3EDE6;">{{ $needReview->count() }}</span>
+                            </div>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            @foreach($needReview as $booking)
+                                <div id="review-item-{{ $booking->id }}" class="rounded-xl p-3 transition-all duration-300 hover:transform hover:-translate-x-1"
+                                     style="background: #F3EDE6; border: 1px solid rgba(176, 141, 87, 0.15);">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-left flex gap-2">
+                                            {{-- زر قيم الآن --}}
+                                            <a href="{{ route('customer.reviews.create', $booking->id) }}" 
+                                               class="px-4 py-2 rounded-lg text-sm font-bold transition hover:opacity-90 inline-block"
+                                               style="background: #10b981; color: white;">
+                                                <i class="fas fa-star ml-1"></i> قيم الآن
+                                            </a>
+                                            
+                                            {{-- زر لاحقاً --}}
+                                            <button onclick="hideReview({{ $booking->id }})" 
+                                                    class="px-4 py-2 rounded-lg text-sm font-bold transition hover:opacity-90 inline-block"
+                                                    style="background: #9ca3af; color: white;">
+                                                <i class="fas fa-clock ml-1"></i> لاحقاً
+                                            </button>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-semibold" style="color: #2B1E1A;">
+                                                @if($booking->service_type == 'classic') كلاسيك
+                                                @elseif($booking->service_type == 'hybrid') هايبرد
+                                                @elseif($booking->service_type == 'volume') فولوم
+                                                @elseif($booking->service_type == 'removal') إزالة رموش
+                                                @else {{ $booking->service_type }}
+                                                @endif
+                                            </p>
+                                            <p style="color: #7C8574; font-size: 0.75rem;">
+                                                {{ $booking->staff->name ?? 'موظفة' }} - {{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 {{-- ========== إشعار الموعد اليوم ========== --}}
                 @php
                     $todayBooking = auth()->user()->bookings()
@@ -110,7 +170,7 @@
                     </div>
                 </div>
 
-                {{-- ========== إحصائيات المستخدم (المصححة) ========== --}}
+                {{-- ========== إحصائيات المستخدم ========== --}}
                 @php
                     $user = auth()->user();
                     $completedCount = $user->bookings()->where('status', 'completed')->count();
@@ -120,7 +180,6 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
                     
-                    {{-- الخدمات المكتملة --}}
                     <div class="rounded-2xl p-5 text-center transition-all duration-300 hover:transform hover:-translate-y-1 shadow-sm"
                          style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
@@ -131,7 +190,6 @@
                         <p class="text-3xl font-bold" style="color: #2B1E1A;">{{ $completedCount }}</p>
                     </div>
                     
-                    {{-- إجمالي الحجوزات (confirmed + completed) --}}
                     <div class="rounded-2xl p-5 text-center transition-all duration-300 hover:transform hover:-translate-y-1 shadow-sm"
                          style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
@@ -142,7 +200,6 @@
                         <p class="text-3xl font-bold" style="color: #2B1E1A;">{{ $totalActiveCount }}</p>
                     </div>
                     
-                    {{-- نقاط الولاء --}}
                     <div class="rounded-2xl p-5 text-center transition-all duration-300 hover:transform hover:-translate-y-1 shadow-sm"
                          style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
@@ -318,4 +375,29 @@
         color: #F3EDE6;
     }
 </style>
+
+<script>
+    function hideReview(bookingId) {
+        const element = document.getElementById('review-item-' + bookingId);
+        if (element) {
+            element.style.display = 'none';
+        }
+        
+        let hiddenReviews = JSON.parse(localStorage.getItem('hidden_reviews') || '[]');
+        if (!hiddenReviews.includes(bookingId)) {
+            hiddenReviews.push(bookingId);
+            localStorage.setItem('hidden_reviews', JSON.stringify(hiddenReviews));
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        let hiddenReviews = JSON.parse(localStorage.getItem('hidden_reviews') || '[]');
+        hiddenReviews.forEach(function(bookingId) {
+            const element = document.getElementById('review-item-' + bookingId);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+    });
+</script>
 @endsection

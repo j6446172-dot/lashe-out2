@@ -119,14 +119,47 @@
                         </label>
                     </div>
                     
-                    {{-- ========== رسالة واتساب للموقع (تظهر عند اختيار خدمة منزلية) ========== --}}
-                    <div id="whatsappMessage" class="mt-4 p-4 rounded-xl text-center hidden" style="background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.3);">
-                        <div class="flex items-center justify-center gap-3">
-                            <i class="fab fa-whatsapp text-2xl" style="color: #25D366;"></i>
-                            <div class="text-right">
-                                <p class="font-bold" style="color: #2B1E1A;">📍 لتحديد موقعك بدقة</p>
-                                <p class="text-sm" style="color: #7C8574;">بعد تأكيد الحجز، سيتم توجيهك إلى واتساب لإرسال موقعك</p>
+                    {{-- ========== 🔥 الخريطة (تظهر عند اختيار خدمة منزلية) ========== --}}
+                    <div id="homeAddressSection" class="mt-4 hidden">
+                        <div class="rounded-2xl p-4" style="background: rgba(176, 141, 87, 0.08);">
+                            <h3 class="font-bold text-right mb-3" style="color: #2B1E1A;">📍 اختاري موقعك على الخريطة</h3>
+                            
+                            <div style="position: relative;">
+                                <div id="map" style="height: 350px; width: 100%; border-radius: 16px; margin-bottom: 12px;"></div>
+                                <input type="text" id="search-input" 
+                                       class="search-control" 
+                                       placeholder="🔍 ابحثي عن عنوان...">
                             </div>
+                            
+                            <div class="bg-white p-3 rounded-xl text-right mb-3">
+                                <p class="text-sm font-bold" style="color: #2B1E1A;">📍 العنوان المختار:</p>
+                                <p id="selected-address" class="text-sm mt-1" style="color: #7C8574;">اضغطي على الخريطة لتحديد موقعك</p>
+                            </div>
+                            
+                            <input type="hidden" name="latitude" id="latitude">
+                            <input type="hidden" name="longitude" id="longitude">
+                            <input type="hidden" name="address_text" id="address_text">
+                            
+                            <div class="grid grid-cols-2 gap-3 mt-3">
+                                <div>
+                                    <label class="block text-sm font-bold text-right mb-1" style="color: #2B1E1A;">رقم البناية (اختياري)</label>
+                                    <input type="text" name="building_number" 
+                                           value="{{ old('building_number', auth()->user()->default_building_number) }}"
+                                           class="w-full p-2 rounded-lg border text-right"
+                                           style="background: rgba(255,255,255,0.8);"
+                                           placeholder="">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-right mb-1" style="color: #2B1E1A;">الطابق/الشقة (اختياري)</label>
+                                    <input type="text" name="apartment" 
+                                           value="{{ old('apartment', auth()->user()->default_apartment) }}"
+                                           class="w-full p-2 rounded-lg border text-right"
+                                           style="background: rgba(255,255,255,0.8);"
+                                           placeholder="">
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" name="save_address" value="1">
                         </div>
                     </div>
                 </div>
@@ -179,6 +212,42 @@
     </div>
 </div>
 
+{{-- مكتبات الخريطة --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    .search-control {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        width: 250px;
+        border: 1px solid #ddd;
+        font-size: 14px;
+        text-align: right;
+        direction: rtl;
+    }
+    .search-control:focus {
+        outline: none;
+        border-color: #B08D57;
+        box-shadow: 0 0 0 2px rgba(176,141,87,0.2);
+    }
+    @media (max-width: 768px) {
+        .search-control {
+            width: 180px;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+    }
+</style>
+
 <script>
     // اختيار الموظفة
     document.querySelectorAll('.staff-card').forEach(card => {
@@ -193,20 +262,160 @@
         });
     });
     
-    // إظهار رسالة واتساب عند اختيار خدمة منزلية
+    // إظهار الخريطة عند اختيار خدمة منزلية
     const locationRadios = document.querySelectorAll('input[name="location"]');
-    const whatsappMessage = document.getElementById('whatsappMessage');
+    const homeAddressSection = document.getElementById('homeAddressSection');
     
     locationRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'home') {
-                whatsappMessage.classList.remove('hidden');
-                whatsappMessage.classList.add('block');
+                homeAddressSection.classList.remove('hidden');
+                homeAddressSection.classList.add('block');
+                setTimeout(() => { if (map) map.invalidateSize(); }, 100);
             } else {
-                whatsappMessage.classList.add('hidden');
-                whatsappMessage.classList.remove('block');
+                homeAddressSection.classList.add('hidden');
+                homeAddressSection.classList.remove('block');
             }
         });
     });
+    
+    // ========== الخريطة ==========
+    const defaultLat = 31.9539;
+    const defaultLng = 35.9106;
+    
+    let map, marker;
+    let hasSavedLocation = false;
+    
+    function initMap() {
+        map = L.map('map').setView([defaultLat, defaultLng], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+        
+        marker.on('dragend', function() {
+            const latLng = marker.getLatLng();
+            updateLocation(latLng);
+            hasSavedLocation = true;
+        });
+        
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            updateLocation(e.latlng);
+            hasSavedLocation = true;
+        });
+        
+        // تحميل العنوان المحفوظ إذا كان موجود
+        @if(auth()->user()->default_latitude && auth()->user()->default_longitude)
+            const savedLat = {{ auth()->user()->default_latitude }};
+            const savedLng = {{ auth()->user()->default_longitude }};
+            marker.setLatLng([savedLat, savedLng]);
+            updateLocation({ lat: savedLat, lng: savedLng });
+            map.setView([savedLat, savedLng], 15);
+            hasSavedLocation = true;
+            
+            // رسالة ترحيبية للعميل اللي عنده موقع محفوظ
+            setTimeout(() => {
+                const msg = document.createElement('div');
+                msg.innerHTML = '📍 تم تحميل عنوانك المحفوظ. يمكنك تعديله أو المتابعة مباشرة.';
+                msg.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#10b981;color:white;padding:10px 20px;border-radius:10px;z-index:9999;font-size:14px;';
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 3000);
+            }, 500);
+        @else
+            updateLocation({ lat: defaultLat, lng: defaultLng });
+        @endif
+    }
+    
+    function updateLocation(latLng) {
+        document.getElementById('latitude').value = latLng.lat;
+        document.getElementById('longitude').value = latLng.lng;
+        document.getElementById('selected-address').innerHTML = 
+            `📍 ${latLng.lat.toFixed(6)}, ${latLng.lng.toFixed(6)}`;
+        document.getElementById('address_text').value = 
+            `${latLng.lat.toFixed(6)}, ${latLng.lng.toFixed(6)}`;
+    }
+    
+    // ========== شريط البحث ==========
+    const searchInput = document.getElementById('search-input');
+    
+    async function searchLocation() {
+        const query = searchInput.value.trim();
+        if (!query) return;
+        
+        searchInput.style.opacity = '0.5';
+        searchInput.placeholder = 'جاري البحث...';
+        
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&accept-language=ar`);
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                const result = data[0];
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                
+                map.setView([lat, lon], 15);
+                marker.setLatLng([lat, lon]);
+                updateLocation({ lat: lat, lng: lon });
+                
+                const displayName = result.display_name.split(',')[0];
+                document.getElementById('selected-address').innerHTML = `📍 ${displayName}`;
+                document.getElementById('address_text').value = result.display_name;
+                hasSavedLocation = true;
+                
+                searchInput.style.borderColor = '#10b981';
+                setTimeout(() => { searchInput.style.borderColor = '#ddd'; }, 2000);
+            } else {
+                alert('⚠️ لم يتم العثور على هذا العنوان. حاولي كتابة اسم المنطقة بدقة.');
+                searchInput.style.borderColor = '#dc2626';
+                setTimeout(() => { searchInput.style.borderColor = '#ddd'; }, 2000);
+            }
+        } catch (error) {
+            console.error('خطأ في البحث:', error);
+            alert('حدث خطأ في البحث. حاولي مرة أخرى.');
+        } finally {
+            searchInput.style.opacity = '1';
+            searchInput.placeholder = '🔍 ابحثي عن عنوان...';
+        }
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchLocation();
+            }
+        });
+    }
+    
+    // ========== التحقق من الموقع عند الإرسال ==========
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        const locationRadio = document.querySelector('input[name="location"]:checked');
+        const isHomeService = locationRadio && locationRadio.value === 'home';
+        
+        if (isHomeService) {
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+            const hasDefaultLocation = {{ auth()->user()->default_latitude ? 'true' : 'false' }};
+            
+            // إذا كان الموقع هو الافتراضي (لم تغيره العميلة) وعندها موقع محفوظ
+            if (hasDefaultLocation && lat == {{ auth()->user()->default_latitude ?? 'null' }} && !hasSavedLocation) {
+                // يسمح لها تكمل بدون ما تغير الموقع
+                return true;
+            }
+            
+            // إذا العميلة ما اختارت موقع
+            if (!lat || !lng || lat === '31.9539' && lng === '35.9106' && !hasDefaultLocation) {
+                e.preventDefault();
+                alert('⚠️ الرجاء اختيار موقعك على الخريطة قبل المتابعة (اضغطي على الخريطة أو ابحثي عن عنوانك)');
+                return false;
+            }
+        }
+    });
+    
+    document.addEventListener('DOMContentLoaded', initMap);
 </script>
 @endsection

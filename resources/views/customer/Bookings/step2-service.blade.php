@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="min-h-screen" style="background: linear-gradient(135deg, #F3EDE6, #E8DCD0);">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
         
@@ -49,16 +50,34 @@
                 <form method="POST" action="{{ route('customer.bookings.step2.post') }}" id="serviceForm">
                     @csrf
                     
+                    @php
+                        $lashDuration = session('booking.lash_duration', 'monthly');
+                        
+                        $services = [
+                            'classic' => ['name' => 'Classic Set', 'price' => 30, 'desc' => 'تركيب رمش واحد طبيعي لكل رمش أصلي لمظهر يومي هادئ', 'icon' => 'feather'],
+                            'wet' => ['name' => 'Wet Set', 'price' => 40, 'desc' => 'مظهر الرموش المبللة العصرية التي تعكس جرأة ملامحك', 'icon' => 'tint'],
+                            'wispy' => ['name' => 'Wispy Set', 'price' => 50, 'desc' => 'تصميم ريشي متدرج يعطي العين مظهراً واسعاً وجذاباً', 'icon' => 'feather-alt'],
+                            'volume' => ['name' => 'Volume Set', 'price' => 45, 'desc' => 'كثافة عالية وسواد فاحم، مثالي للمناسبات والحفلات', 'icon' => 'layer-group'],
+                            'anime' => ['name' => 'Anime Set', 'price' => 55, 'desc' => 'ستايل الأنمي الشهير بتوزيع Spikes فني ومميز جداً', 'icon' => 'star'],
+                        ];
+                        
+                        // حساب السعر حسب المدة (بدون أي نصوص)
+                        foreach ($services as $key => $service) {
+                            $originalPrice = $service['price'];
+                            
+                            if ($lashDuration == 'one-time') {
+                                $displayPrice = round($originalPrice * 0.5);
+                            } elseif ($lashDuration == 'weekly') {
+                                $displayPrice = round($originalPrice * 0.65);
+                            } else {
+                                $displayPrice = $originalPrice;
+                            }
+                            
+                            $services[$key]['display_price'] = $displayPrice;
+                        }
+                    @endphp
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        @php
-                            $services = [
-                                'classic' => ['name' => 'Classic Set', 'price' => 30, 'desc' => 'تركيب رمش واحد طبيعي لكل رمش أصلي لمظهر يومي هادئ', 'icon' => 'feather'],
-                                'wet' => ['name' => 'Wet Set', 'price' => 40, 'desc' => 'مظهر الرموش المبللة العصرية التي تعكس جرأة ملامحك', 'icon' => 'tint'],
-                                'wispy' => ['name' => 'Wispy Set', 'price' => 50, 'desc' => 'تصميم ريشي متدرج يعطي العين مظهراً واسعاً وجذاباً', 'icon' => 'feather-alt'],
-                                'volume' => ['name' => 'Volume Set', 'price' => 45, 'desc' => 'كثافة عالية وسواد فاحم، مثالي للمناسبات والحفلات', 'icon' => 'layer-group'],
-                                'anime' => ['name' => 'Anime Set', 'price' => 55, 'desc' => 'ستايل الأنمي الشهير بتوزيع Spikes فني ومميز جداً', 'icon' => 'star'],
-                            ];
-                        @endphp
                         @foreach($services as $key => $service)
                             <label class="cursor-pointer block">
                                 <input type="radio" name="service_type" value="{{ $key }}" class="hidden peer" required>
@@ -67,7 +86,11 @@
                                     <i class="fas fa-{{ $service['icon'] }} text-2xl mb-2 block" style="color: #B08D57;"></i>
                                     <h3 class="font-bold text-lg" style="color: #2B1E1A;">{{ $service['name'] }}</h3>
                                     <p class="text-sm mt-1" style="color: #7C8574;">{{ $service['desc'] }}</p>
-                                    <p class="text-xl font-bold mt-3" style="color: #B08D57;">{{ $service['price'] }} د.أ</p>
+                                    <div class="mt-3">
+                                        <p class="text-xl font-bold" style="color: #B08D57;">
+                                            {{ $service['display_price'] }} د.أ
+                                        </p>
+                                    </div>
                                 </div>
                             </label>
                         @endforeach
@@ -99,7 +122,6 @@
 </style>
 
 <script>
-    // تأكد من أن النموذج يتم إرساله عند الضغط على "التالي"
     document.querySelector('form').addEventListener('submit', function(e) {
         const selected = document.querySelector('input[name="service_type"]:checked');
         if (!selected) {

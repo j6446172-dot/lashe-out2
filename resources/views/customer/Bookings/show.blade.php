@@ -147,47 +147,7 @@
                     </div>
                 </div>
 
-                {{-- ========== 🔴 زر إرسال الموقع للخدمة المنزلية (واتساب) 🔴 ========== --}}
-                @if($booking->location == 'home' && $booking->status == 'confirmed')
-                    @php
-                        // رقم واتساب الصالون (غيريه حسب رقمك)
-                        $salonPhone = '962791234567';
-                        
-                        // رسالة جاهزة تحتوي على تفاصيل الحجز
-                        $message = "📍 *خدمة منزلية - Lashe Out* 📍\n\n";
-                        $message .= "👤 *الاسم:* {$booking->user->name}\n";
-                        $message .= "📅 *التاريخ:* " . \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') . "\n";
-                        $message .= "⏰ *الوقت:* " . \Carbon\Carbon::parse($booking->booking_time)->format('g:i A') . "\n";
-                        $message .= "💅 *الخدمة:* ";
-                        if($booking->service_type == 'classic') $message .= "Classic Set";
-                        elseif($booking->service_type == 'wet') $message .= "Wet Set";
-                        elseif($booking->service_type == 'wispy') $message .= "Wispy Set";
-                        elseif($booking->service_type == 'volume') $message .= "Volume Set";
-                        elseif($booking->service_type == 'anime') $message .= "Anime Set";
-                        else $message .= $booking->service_type;
-                        $message .= "\n\n";
-                        $message .= "📍 *الموقع:* (الرجاء إرسال موقعك)";
-                        
-                        $whatsappLink = "https://wa.me/{$salonPhone}?text=" . urlencode($message);
-                    @endphp
-                    
-                    <div class="mt-4 p-4 rounded-xl text-center" style="background: rgba(37, 211, 102, 0.1); border: 1px solid #25D366; border-radius: 16px;">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <i class="fab fa-whatsapp text-2xl" style="color: #25D366;"></i>
-                            <span class="font-bold" style="color: #2B1E1A;">📍 لتأكيد خدمتك المنزلية</span>
-                        </div>
-                        <p class="text-sm mb-3" style="color: #7C8574;">أرسلي موقعك عبر واتساب لتأكيد الحجز</p>
-                        <a href="{{ $whatsappLink }}" 
-                           target="_blank"
-                           class="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold transition hover:opacity-80"
-                           style="background: #25D366; color: white;">
-                            <i class="fab fa-whatsapp text-xl"></i>
-                            📍 إرسال موقعي عبر واتساب
-                        </a>
-                        <p class="text-xs mt-2" style="color: #7C8574;">سيتم فتح واتساب، اضغطي إرسال لمشاركة موقعك</p>
-                    </div>
-                @endif
-
+               
                 {{-- رسالة للحجز الملغي --}}
                 @if($booking->status == 'cancelled')
                 <div class="rounded-xl p-4 mt-6 text-center" style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2);">

@@ -8,6 +8,8 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Queue;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingConfirmedMail;
 
 class BookingController extends Controller
 {
@@ -55,12 +57,12 @@ class BookingController extends Controller
         'eye_shape' => 'required',
     ]);
 
-    // ✅ المدة تخزن في session فقط (ما تحفظ في قاعدة بيانات المستخدم)
-    $lashDuration = $request->has('lash_duration') ? $request->lash_duration : 'weekly';
+    // ✅ المدة تخزن في session (one_time, monthly, weekly)
+    $lashDuration = $request->has('lash_duration') ? $request->lash_duration : 'monthly';
 
     session([
         'booking.eye_shape' => $request->eye_shape,
-        'booking.lash_duration' => $lashDuration,  // ✅ تخزين مؤقت فقط
+        'booking.lash_duration' => $lashDuration,
     ]);
 
     // ✅ نحفظ شكل العين فقط في قاعدة بيانات المستخدم
@@ -70,7 +72,6 @@ class BookingController extends Controller
 
     return redirect()->route('customer.bookings.step2');
 }
-
     // ================= STEP 2 =================
     public function step2Service()
     {
@@ -161,31 +162,42 @@ class BookingController extends Controller
         return view('customer.bookings.step4-staff', compact('availableStaff'));
     }
 
-    public function postStep4(Request $request)
-    {
-        $validated = $request->validate([
-            'staff_id' => 'required|exists:users,id',
-            'location' => 'required|in:salon,home'
-        ]);
+   public function postStep4(Request $request)
+{
+    $validated = $request->validate([
+        'staff_id' => 'required|exists:users,id',
+        'location' => 'required|in:salon,home',
+        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+        'address_text' => 'nullable|string|max:500',
+        'building_number' => 'nullable|string|max:50',   
+        'apartment' => 'nullable|string|max:50',         
+    ]);
 
-        $existingStaffBooking = Booking::where('staff_id', $validated['staff_id'])
-            ->where('booking_date', session('booking.booking_date'))
-            ->where('booking_time', session('booking.booking_time'))
-            ->where('status', 'confirmed')
-            ->first();
+    $existingStaffBooking = Booking::where('staff_id', $validated['staff_id'])
+        ->where('booking_date', session('booking.booking_date'))
+        ->where('booking_time', session('booking.booking_time'))
+        ->where('status', 'confirmed')
+        ->first();
 
-        if ($existingStaffBooking) {
-            return back()->with('error', '⚠️ عذراً، هذه الموظفة أصبحت مشغولة! الرجاء اختيار موظفة أخرى.');
-        }
-
-        session([
-            'booking.staff_id' => $validated['staff_id'],
-            'booking.location' => $validated['location']
-        ]);
-        session()->save();
-
-        return redirect()->route('customer.bookings.confirm');
+    if ($existingStaffBooking) {
+        return back()->with('error', '⚠️ عذراً، هذه الموظفة أصبحت مشغولة! الرجاء اختيار موظفة أخرى.');
     }
+
+    session([
+        'booking.staff_id' => $validated['staff_id'],
+        'booking.location' => $validated['location'],
+        'booking.latitude' => $validated['latitude'],
+        'booking.longitude' => $validated['longitude'],
+        'booking.address_text' => $validated['address_text'],
+        'booking.building_number' => $validated['building_number'],   
+        'booking.apartment' => $validated['apartment'],               
+        'booking.save_address' => true,
+    ]);
+    session()->save();
+
+    return redirect()->route('customer.bookings.confirm');
+}
 
     // ================= CONFIRM =================
     public function confirm()
@@ -223,64 +235,103 @@ class BookingController extends Controller
     }
 
     // ================= STORE =================
-    public function store(Request $request)
-    {
-        $data = session('booking');
-        
-        if (!$data) {
-            return redirect()->route('customer.bookings.step1')
-                ->with('error', 'انتهت الجلسة');
-        }
-        
-        $user = auth()->user();
-        
-        $services = [
-            'classic' => 30,
-            'wet' => 40,
-            'wispy' => 50,
-            'volume' => 45,
-            'anime' => 55
-        ];
-        
-        $originalPrice = $services[$data['service_type']] ?? 0;
-        
-        $discount = 0;
-        if ($user->canApplyDiscount()) {
-            $discount = 15;
-            $user->applyDiscount();
-        }
-        
-        $finalPrice = $originalPrice - ($originalPrice * $discount / 100);
-        
-        if ($data['location'] == 'home') {
-            $finalPrice += 10;
-        }
-        
-        $bookingDate = $data['booking_date'];
-        $status = $bookingDate < today() ? 'completed' : 'confirmed';
-        
-        $booking = Booking::create([
-            'user_id' => $user->id,
-            'staff_id' => $data['staff_id'],
-            'service_type' => $data['service_type'],
-            'eye_shape' => $data['eye_shape'] ?? null,
-            'lash_duration' => $data['lash_duration'] ?? null,
-            'style_preference' => $data['style_preference'] ?? null,
-            'booking_date' => $bookingDate,
-            'booking_time' => $data['booking_time'],
-            'location' => $data['location'],
-            'price' => $finalPrice,
-            'status' => $status
-        ]);
-        
-        $user->increment('total_bookings');
-        $user->increment('loyalty_points', 10);
-        
-        session()->forget('booking');
-        
-        return redirect()->route('customer.bookings.show', $booking->id)
-            ->with('success', 'تم حجز موعدك بنجاح! 🎉');
+   // ================= STORE =================
+public function store(Request $request)
+{
+    $data = session('booking');
+    
+    if (!$data) {
+        return redirect()->route('customer.bookings.step1')
+            ->with('error', 'انتهت الجلسة');
     }
+    
+    $user = auth()->user();
+    
+    // الأسعار الأصلية
+    $services = [
+        'classic' => 30,
+        'wet' => 40,
+        'wispy' => 50,
+        'volume' => 45,
+        'anime' => 55
+    ];
+    
+    $originalPrice = $services[$data['service_type']] ?? 0;
+    
+    // 🔥 حساب السعر حسب مدة الرموش (one_time, monthly, weekly)
+    $lashDuration = $data['lash_duration'] ?? 'monthly';
+    
+    switch ($lashDuration) {
+        case 'one_time':
+            $priceAfterDuration = $originalPrice * 0.5;  // نصف السعر
+            break;
+        case 'weekly':
+            $priceAfterDuration = $originalPrice * 0.65; // أقل بـ 35%
+            break;
+        case 'monthly':
+        default:
+            $priceAfterDuration = $originalPrice;        // السعر العادي
+            break;
+    }
+    
+    // خصم العميل (إذا مؤهل)
+    $discount = 0;
+    if ($user->canApplyDiscount()) {
+        $discount = 15;
+        $user->applyDiscount();
+    }
+    
+    $finalPrice = $priceAfterDuration - ($priceAfterDuration * $discount / 100);
+    
+    // إضافة 10 د.أ للخدمة المنزلية
+    if ($data['location'] == 'home') {
+        $finalPrice += 10;
+    }
+    
+    $bookingDate = $data['booking_date'];
+    $status = $bookingDate < today() ? 'completed' : 'confirmed';
+    
+    $booking = Booking::create([
+        'user_id' => $user->id,
+        'staff_id' => $data['staff_id'],
+        'service_type' => $data['service_type'],
+        'eye_shape' => $data['eye_shape'] ?? null,
+        'lash_duration' => $data['lash_duration'] ?? null,
+        'style_preference' => $data['style_preference'] ?? null,
+        'booking_date' => $bookingDate,
+        'booking_time' => $data['booking_time'],
+        'location' => $data['location'],
+        'price' => $finalPrice,
+        'status' => $status,
+        'latitude' => $data['latitude'] ?? null,
+        'longitude' => $data['longitude'] ?? null,
+        'address_text' => $data['address_text'] ?? null,
+        'building_number' => $data['building_number'] ?? null,   
+        'apartment' => $data['apartment'] ?? null,  
+    ]);
+    
+    // إرسال إيميل التأكيد
+    Mail::to($user->email)->send(new BookingConfirmedMail($booking, $user));
+    
+    // حفظ العنوان في ملف العميل إذا اختار "حفظ عنواني"
+    if (isset($data['save_address']) && $data['save_address']) {
+        $user->update([
+            'default_latitude' => $data['latitude'] ?? null,
+            'default_longitude' => $data['longitude'] ?? null,
+            'default_address' => $data['address_text'] ?? null,
+            'default_building_number' => $data['building_number'] ?? null,   
+            'default_apartment' => $data['apartment'] ?? null,
+        ]);
+    }
+    
+    $user->increment('total_bookings');
+    $user->increment('loyalty_points', 10);
+    
+    session()->forget('booking');
+    
+    return redirect()->route('customer.bookings.show', $booking->id)
+        ->with('success', 'تم حجز موعدك بنجاح! 🎉');
+}
 
     // ================= BOOKINGS MANAGEMENT =================
     public function index()
