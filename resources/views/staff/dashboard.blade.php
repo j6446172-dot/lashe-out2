@@ -3,7 +3,33 @@
 @section('content')
 <div class="min-h-screen" style="background: linear-gradient(135deg, #F3EDE6, #E8DCD0);">
     <div class="container mx-auto px-4 pt-20 pb-12">
-        
+        @foreach($leaveNotifications as $leaveNotification)
+
+<div class="mb-4 p-4 rounded-xl flex justify-between items-center
+    {{ $leaveNotification->status == 'approved'
+        ? 'bg-green-100 border-r-4 border-green-500'
+        : 'bg-red-100 border-r-4 border-red-500' }}">
+
+    <div>
+        @if($leaveNotification->status == 'approved')
+            🔔 تمت الموافقة على طلب الإجازة الخاص بك ✅
+        @else
+            🔔 تم رفض طلب الإجازة الخاص بك ❌
+        @endif
+    </div>
+
+    <form method="POST"
+          action="{{ route('staff.leave-notification.read', $leaveNotification->id) }}">
+        @csrf
+        <button type="submit"
+                class="bg-white px-3 py-1 rounded shadow text-green-600 font-bold">
+            ✓
+        </button>
+    </form>
+
+</div>
+
+@endforeach
         {{-- Header --}}
         <div class="rounded-2xl p-6 mb-6 shadow-md" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
             <div class="flex justify-between items-center">
@@ -17,68 +43,99 @@
             </div>
         </div>
 
-        {{-- Stats Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="rounded-xl p-5 text-center transition-all hover:scale-105" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-                <div class="flex justify-center mb-2">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(176, 141, 87, 0.2);">
-                        <i class="fas fa-calendar-day text-2xl" style="color: #B08D57;"></i>
-                    </div>
-                </div>
-                <p class="text-gray-600 text-sm mt-2">حجوزات اليوم</p>
-                <p class="text-3xl font-bold mt-1" style="color: #B08D57;">{{ $todayBookings ?? 0 }}</p>
-            </div>
+      {{-- Stats Cards --}}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-            <div class="rounded-xl p-5 text-center transition-all hover:scale-105" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-                <div class="flex justify-center mb-2">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(176, 141, 87, 0.2);">
-                        <i class="fas fa-clock text-2xl" style="color: #B08D57;"></i>
-                    </div>
-                </div>
-                <p class="text-gray-600 text-sm mt-2">الحجوزات القادمة</p>
-                <p class="text-3xl font-bold mt-1" style="color: #B08D57;">{{ $upcomingBookings ?? 0 }}</p>
-            </div>
+    {{-- حجوزات اليوم --}}
+    <div class="rounded-xl p-5 text-center transition-all hover:scale-105"
+        style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
 
-            <div class="rounded-xl p-5 text-center transition-all hover:scale-105" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-                <div class="flex justify-center mb-2">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(16, 185, 129, 0.2);">
-                        <i class="fas fa-check-circle text-2xl" style="color: #10b981;"></i>
-                    </div>
-                </div>
-                <p class="text-gray-600 text-sm mt-2">الحجوزات المكتملة</p>
-                <p class="text-3xl font-bold mt-1" style="color: #10b981;">{{ $completedBookings ?? 0 }}</p>
-            </div>
-
-            <div class="rounded-xl p-5 text-center transition-all hover:scale-105" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-                <div class="flex justify-center mb-2">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(245, 158, 11, 0.2);">
-                        <i class="fas fa-star text-2xl" style="color: #f59e0b;"></i>
-                    </div>
-                </div>
-                <p class="text-gray-600 text-sm mt-2">تقييمي</p>
-                <div class="mt-1">
-                    @if(isset($myRatingValue) && $myRatingValue > 0)
-                        <div class="flex justify-center items-center gap-2">
-                            <span class="text-2xl font-bold" style="color: #f59e0b;">{{ number_format($myRatingValue, 1) }}</span>
-                            <div class="flex text-yellow-400 text-sm">
-                                @for($i = 1; $i <= 5; $i++)
-                                    @if($i <= floor($myRatingValue))
-                                        <i class="fas fa-star"></i>
-                                    @elseif($i - 0.5 <= $myRatingValue)
-                                        <i class="fas fa-star-half-alt"></i>
-                                    @else
-                                        <i class="far fa-star"></i>
-                                    @endif
-                                @endfor
-                            </div>
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-500 mt-1">لا توجد تقييمات بعد</p>
-                    @endif
-                </div>
+        <div class="flex justify-center mb-2">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                style="background: rgba(176, 141, 87, 0.2);">
+                <i class="fas fa-calendar-day text-2xl" style="color: #B08D57;"></i>
             </div>
         </div>
 
+        <p class="text-gray-600 text-sm mt-2">حجوزات اليوم</p>
+        <p class="text-3xl font-bold mt-1" style="color: #B08D57;">
+            {{ $todayBookings ?? 0 }}
+        </p>
+    </div>
+
+    {{-- الحجوزات القادمة (اليوم فقط - غير مكتملة) --}}
+    <div class="rounded-xl p-5 text-center transition-all hover:scale-105"
+        style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
+
+        <div class="flex justify-center mb-2">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                style="background: rgba(176, 141, 87, 0.2);">
+                <i class="fas fa-clock text-2xl" style="color: #B08D57;"></i>
+            </div>
+        </div>
+
+        <p class="text-gray-600 text-sm mt-2">الحجوزات القادمة</p>
+        <p class="text-3xl font-bold mt-1" style="color: #B08D57;">
+            {{ $remainingBookings ?? 0 }}
+        </p>
+    </div>
+
+    {{-- الحجوزات المكتملة (اليوم فقط) --}}
+    <div class="rounded-xl p-5 text-center transition-all hover:scale-105"
+        style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
+
+        <div class="flex justify-center mb-2">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                style="background: rgba(16, 185, 129, 0.2);">
+                <i class="fas fa-check-circle text-2xl" style="color: #10b981;"></i>
+            </div>
+        </div>
+
+        <p class="text-gray-600 text-sm mt-2">الحجوزات المكتملة</p>
+        <p class="text-3xl font-bold mt-1" style="color: #10b981;">
+            {{ $completedBookings ?? 0 }}
+        </p>
+    </div>
+
+    {{-- التقييم --}}
+    <div class="rounded-xl p-5 text-center transition-all hover:scale-105"
+        style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
+
+        <div class="flex justify-center mb-2">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                style="background: rgba(245, 158, 11, 0.2);">
+                <i class="fas fa-star text-2xl" style="color: #f59e0b;"></i>
+            </div>
+        </div>
+
+        <p class="text-gray-600 text-sm mt-2">تقييمي</p>
+
+        <div class="mt-1">
+            @if(isset($myRatingValue) && $myRatingValue > 0)
+                <div class="flex justify-center items-center gap-2">
+                    <span class="text-2xl font-bold" style="color: #f59e0b;">
+                        {{ number_format($myRatingValue, 1) }}
+                    </span>
+
+                    <div class="flex text-yellow-400 text-sm">
+                        @for($i = 1; $i <= 5; $i++)
+                            @if($i <= floor($myRatingValue))
+                                <i class="fas fa-star"></i>
+                            @elseif($i - 0.5 <= $myRatingValue)
+                                <i class="fas fa-star-half-alt"></i>
+                            @else
+                                <i class="far fa-star"></i>
+                            @endif
+                        @endfor
+                    </div>
+                </div>
+            @else
+                <p class="text-sm text-gray-500 mt-1">لا توجد تقييمات بعد</p>
+            @endif
+        </div>
+    </div>
+
+</div>
         {{-- Bookings and Schedule --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
@@ -128,6 +185,7 @@
             </div>
 
    {{-- My Schedule --}}
+{{-- My Schedule --}}
 <div class="rounded-xl p-6" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-bold">📅 دوامي هذا الأسبوع</h3>
@@ -147,24 +205,36 @@
             @php
                 $isToday = ($index == $todayIndex);
 
-                // 1. جلب حالة الصالون الأساسية من جدول الأونر
+                // 1. جلب حالة الصالون الأساسية
                 $salonDay = \DB::table('salon_schedule')->where('day_of_week', $index)->first();
                 $salonIsOpen = $salonDay ? $salonDay->is_open : ($index != 6);
 
-                // 2. جلب سجل الموظفة الخاص (الذي عدله الأونر يدوياً لكِ)
+                // 2. جلب سجل الموظفة الخاص
                 $staffDay = \DB::table('staff_schedule')
                     ->where('staff_id', auth()->id())
                     ->where('day_of_week', $index)
                     ->first();
 
-                // 3. تحديد الحالة النهائية:
-                // الأولوية 1: إذا الصالون مغلق -> عطلة إجبارية
-                // الأولوية 2: إذا الموظفة لها سجل خاص (إجازة/دوام) -> نأخذ حالتها
-                // الأولوية 3: غير ذلك -> تتبع الصالون (دوام لو الصالون فاتح)
+                // 3. التحقق من الإجازة الجزئية
+                $isPartialLeave = false;
+                $leaveFrom = null;
+                $leaveTo = null;
 
+                if ($salonIsOpen && $staffDay) {
+                    if ($staffDay->start_time && $staffDay->end_time && $staffDay->status !== 'active' && $staffDay->status !== 'open') {
+                        $isPartialLeave = true;
+                        $leaveFrom = $staffDay->start_time;
+                        $leaveTo = $staffDay->end_time;
+                    }
+                }
+
+                // 4. تحديد الحالة النهائية
                 if (!$salonIsOpen) {
-                    $finalStatus = 'dayoff'; // عطلة صالون
+                    $finalStatus = 'dayoff';
                     $isWorking = false;
+                    $isPartialLeave = false;
+                } elseif ($isPartialLeave) {
+                    $isWorking = false; // إجازة جزئية تعتبر عطلة
                 } elseif ($staffDay) {
                     $finalStatus = $staffDay->status;
                     $isWorking = ($staffDay->status === 'active' || $staffDay->status === 'open');
@@ -173,9 +243,17 @@
                     $isWorking = $salonIsOpen;
                 }
 
-                // 4. تحديد الأوقات
-                $startTime = ($staffDay && $staffDay->start_time) ? $staffDay->start_time : ($salonDay->start_time ?? '10:00');
-                $endTime = ($staffDay && $staffDay->end_time) ? $staffDay->end_time : ($salonDay->end_time ?? '18:00');
+                // 5. تحديد الأوقات المعروضة
+                if ($isPartialLeave) {
+                    $displayStartTime = $leaveFrom;
+                    $displayEndTime = $leaveTo;
+                } elseif ($staffDay && ($staffDay->start_time || $staffDay->end_time)) {
+                    $displayStartTime = $staffDay->start_time ?? ($salonDay->start_time ?? '10:00');
+                    $displayEndTime = $staffDay->end_time ?? ($salonDay->end_time ?? '18:00');
+                } else {
+                    $displayStartTime = $salonDay->start_time ?? '10:00';
+                    $displayEndTime = $salonDay->end_time ?? '18:00';
+                }
             @endphp
 
             <div class="p-3 rounded-lg {{ $isToday ? 'bg-gradient-to-r from-amber-50 to-transparent border-r-4 border-[#B08D57]' : '' }}">
@@ -187,24 +265,37 @@
                             @if($isToday) <span class="text-xs mr-2 font-bold">(اليوم)</span> @endif
                         </span>
 
-                        @if($isWorking)
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">دوام</span>
+                        @if($isPartialLeave)
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                                🕓 إجازة جزئية
+                            </span>
+                        @elseif($isWorking)
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                                ✅ دوام
+                            </span>
                         @else
                             <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                                @if(!$salonIsOpen) عطلة الصالون 
-                                @elseif($finalStatus == 'annual') سنوية
-                                @elseif($finalStatus == 'sick') مرضية
-                                @else عطلة @endif
+                                @if(!$salonIsOpen) 📌 عطلة الصالون 
+                                @elseif($finalStatus == 'annual') 🌴 سنوية
+                                @elseif($finalStatus == 'sick') 🤒 مرضية
+                                @else 🚫 عطلة @endif
                             </span>
                         @endif
                     </div>
 
                     <div class="text-sm">
-                        @if($isWorking)
+                        @if($isPartialLeave)
+                            <span class="text-yellow-600 font-mono">
+                                <i class="fas fa-clock ml-1"></i>
+                                {{ \Carbon\Carbon::parse($displayStartTime)->format('g:i A') }} -
+                                {{ \Carbon\Carbon::parse($displayEndTime)->format('g:i A') }}
+                                <span class="text-gray-400 mr-1 text-xs">(غياب)</span>
+                            </span>
+                        @elseif($isWorking)
                             <span class="text-gray-600 font-mono">
                                 <i class="far fa-clock ml-1 text-[#B08D57]"></i>
-                                {{ \Carbon\Carbon::parse($startTime)->format('g:i A') }} -
-                                {{ \Carbon\Carbon::parse($endTime)->format('g:i A') }}
+                                {{ \Carbon\Carbon::parse($displayStartTime)->format('g:i A') }} -
+                                {{ \Carbon\Carbon::parse($displayEndTime)->format('g:i A') }}
                             </span>
                         @else
                             <span class="text-gray-400 italic">--- راحة ---</span>
@@ -216,7 +307,6 @@
         @endforeach
     </div>
 </div>
-       
     </div>
 </div>
 @endsection

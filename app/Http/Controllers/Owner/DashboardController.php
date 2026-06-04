@@ -113,15 +113,23 @@ return view('owner.dashboard', compact(
 ));
 
     }
-      public function approveLeave(int $id)
+     public function approveLeave(int $id)
 {
-    LeaveRequest::find($id)->update(['status' => 'approved']);
+    LeaveRequest::find($id)->update([
+        'status' => 'approved',
+        'reviewed_at' => now(),        // <-- أضف هذا
+        'notification_read' => false    // <-- وأضف هذا
+    ]);
     return back()->with('success', 'تمت الموافقة ✅');
 }
 
 public function rejectLeave(int $id)
 {
-    LeaveRequest::find($id)->update(['status' => 'rejected']);
+    LeaveRequest::find($id)->update([
+        'status' => 'rejected',
+        'reviewed_at' => now(),        // <-- أضف هذا
+        'notification_read' => false    // <-- وأضف هذا
+    ]);
     return back()->with('success', 'تم الرفض ❌');
 }
 

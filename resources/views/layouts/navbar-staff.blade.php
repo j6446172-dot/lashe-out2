@@ -23,6 +23,9 @@
                         <a href="{{ route('staff.schedule') }}" class="font-bold transition hover:opacity-70" style="color: #7C8574;">
                             <i class="fas fa-clock ml-1"></i> جدول دوامي
                         </a>
+                        <a href="{{ route('staff.monthly-stats') }}" class="font-bold transition hover:opacity-70" style="color: #7C8574;">
+                            <i class="fas fa-chart-line ml-1"></i> إحصائيات متقدمة
+                        </a>
                         <a href="{{ route('staff.reviews') }}" class="font-bold transition hover:opacity-70" style="color: #7C8574;">
                             <i class="fas fa-star ml-1"></i> تقييماتي
                         </a>
@@ -138,6 +141,9 @@
                     <a href="{{ route('staff.dashboard') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">لوحة التحكم</a>
                     <a href="{{ route('staff.bookings') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">الحجوزات</a>
                     <a href="{{ route('staff.schedule') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">جدول دوامي</a>
+                    <a href="{{ route('staff.monthly-stats') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">
+                        <i class="fas fa-chart-line ml-1"></i> إحصائيات متقدمة
+                    </a>
                     <a href="{{ route('staff.reviews') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">تقييماتي</a>
                     
                     <button onclick="openLeaveRequest()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">📅 طلب إجازة</button>
@@ -175,7 +181,7 @@
             </div>
         </div>
 
-       {{-- نافذة طلب إجازة --}}
+     {{-- نافذة طلب إجازة --}}
 <div id="leaveModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
     <div class="rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3);">
         <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
@@ -235,31 +241,32 @@
         </form>
     </div>
 </div>
-        {{-- نافذة سجل الإجازات --}}
-        <div id="leaveHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-            <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
-                <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2"><i class="fas fa-history text-white"></i><span class="font-bold text-white">سجل الإجازات السابقة</span></div>
-                        <button onclick="closeLeaveHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
-                <div id="leaveHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
-            </div>
-        </div>
 
-        {{-- نافذة سجل الرواتب --}}
-        <div id="salaryHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-            <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
-                <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2"><i class="fas fa-chart-line text-white"></i><span class="font-bold text-white">سجل الرواتب الشهرية</span></div>
-                        <button onclick="closeSalaryHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
-                <div id="salaryHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
+{{-- نافذة سجل الإجازات --}}
+<div id="leaveHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
+    <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
+        <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2"><i class="fas fa-history text-white"></i><span class="font-bold text-white">سجل الإجازات السابقة</span></div>
+                <button onclick="closeLeaveHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
             </div>
         </div>
+        <div id="leaveHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
+    </div>
+</div>
+
+{{-- نافذة سجل الرواتب --}}
+<div id="salaryHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
+    <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
+        <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2"><i class="fas fa-chart-line text-white"></i><span class="font-bold text-white">سجل الرواتب الشهرية</span></div>
+                <button onclick="closeSalaryHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="salaryHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
+    </div>
+</div>
 
         <style>
             [x-cloak] { display: none !important; }
@@ -396,91 +403,125 @@
                 document.getElementById('leaveModal').classList.remove('flex'); 
             }
             
-         document.getElementById('leaveRequestForm')?.addEventListener('submit', async(e) => { 
-    e.preventDefault(); 
-    const form = e.target; 
-    const durationType = document.querySelector('input[name="duration_type"]:checked').value; 
-    
-    let formData = { 
-        leave_type: form.querySelector('select[name="leave_type"]').value, 
-        duration_type: durationType, 
-        reason: form.querySelector('textarea[name="reason"]').value || '' 
-    }; 
-    
-    if(durationType === 'days') { 
-        formData.start_date = form.querySelector('input[name="start_date"]').value; 
-        formData.end_date = form.querySelector('input[name="end_date"]').value; 
-    } else { 
-        formData.start_date = form.querySelector('input[name="hours_date"]').value; 
-        formData.end_date = formData.start_date; 
-        formData.start_time = form.querySelector('input[name="start_time"]').value; 
-        formData.end_time = form.querySelector('input[name="end_time"]').value; 
-        formData.hours = form.querySelector('input[name="hours"]').value; 
-    } 
-    
-    if(!formData.leave_type) { 
-        alert('الرجاء اختيار نوع الإجازة'); 
-        return; 
-    } 
-    if(!formData.start_date) { 
-        alert('الرجاء اختيار التاريخ'); 
-        return; 
-    } 
-    if(durationType === 'days' && !formData.end_date) { 
-        alert('الرجاء اختيار تاريخ الانتهاء'); 
-        return; 
-    } 
-    if(durationType === 'hours' && (!formData.start_time || !formData.end_time)) { 
-        alert('الرجاء اختيار وقت البداية والنهاية'); 
-        return; 
-    } 
-    
-    const btn = form.querySelector('button[type="submit"]'); 
-    btn.disabled = true; 
-    btn.innerHTML = 'جاري الإرسال...'; 
-    
-    try { 
-        const response = await fetch('{{ route("staff.leave.request") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        }); 
-        const data = await response.json(); 
-        if(data.success) { 
-            alert('✅ تم إرسال طلب الإجازة بنجاح'); 
-            closeLeaveModal(); 
-            form.reset(); 
-        } else { 
-            alert('❌ حدث خطأ: ' + (data.message || 'حاولي مرة أخرى')); 
-        } 
-    } catch(error) { 
-        console.error(error); 
-        alert('❌ حدث خطأ في الإرسال'); 
-    } finally { 
-        btn.disabled = false; 
-        btn.innerHTML = 'إرسال الطلب'; 
-    } 
-});
+            document.getElementById('leaveRequestForm')?.addEventListener('submit', async(e) => { 
+                e.preventDefault(); 
+                const form = e.target; 
+                const durationType = document.querySelector('input[name="duration_type"]:checked').value; 
+                
+                let formData = { 
+                    leave_type: form.querySelector('select[name="leave_type"]').value, 
+                    duration_type: durationType, 
+                    reason: form.querySelector('textarea[name="reason"]').value || '' 
+                }; 
+                
+                if(durationType === 'days') { 
+                    formData.start_date = form.querySelector('input[name="start_date"]').value; 
+                    formData.end_date = form.querySelector('input[name="end_date"]').value; 
+                } else { 
+                    formData.start_date = form.querySelector('input[name="hours_date"]').value; 
+                    formData.end_date = formData.start_date; 
+                    formData.start_time = form.querySelector('input[name="start_time"]').value; 
+                    formData.end_time = form.querySelector('input[name="end_time"]').value; 
+                    formData.hours = form.querySelector('input[name="hours"]').value; 
+                } 
+                
+                if(!formData.leave_type) { 
+                    alert('الرجاء اختيار نوع الإجازة'); 
+                    return; 
+                } 
+                if(!formData.start_date) { 
+                    alert('الرجاء اختيار التاريخ'); 
+                    return; 
+                } 
+                if(durationType === 'days' && !formData.end_date) { 
+                    alert('الرجاء اختيار تاريخ الانتهاء'); 
+                    return; 
+                } 
+                if(durationType === 'hours' && (!formData.start_time || !formData.end_time)) { 
+                    alert('الرجاء اختيار وقت البداية والنهاية'); 
+                    return; 
+                } 
+                
+                const btn = form.querySelector('button[type="submit"]'); 
+                btn.disabled = true; 
+                btn.innerHTML = 'جاري الإرسال...'; 
+                
+                try { 
+                    const response = await fetch('{{ route("staff.leave.request") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    }); 
+                    const data = await response.json(); 
+                    if(data.success) { 
+                        alert('✅ تم إرسال طلب الإجازة بنجاح'); 
+                        closeLeaveModal(); 
+                        form.reset(); 
+                    } else { 
+                        alert('❌ حدث خطأ: ' + (data.message || 'حاولي مرة أخرى')); 
+                    } 
+                } catch(error) { 
+                    console.error(error); 
+                    alert('❌ حدث خطأ في الإرسال'); 
+                } finally { 
+                    btn.disabled = false; 
+                    btn.innerHTML = 'إرسال الطلب'; 
+                } 
+            });
             
             // ========== دوال سجل الإجازات ==========
             async function showLeaveHistory() { 
                 const modal = document.getElementById('leaveHistoryModal'); 
                 modal.classList.remove('hidden'); 
                 modal.classList.add('flex'); 
+
                 const content = document.getElementById('leaveHistoryContent'); 
                 content.innerHTML = '<div class="text-center py-8 text-gray-500">جاري التحميل...</div>'; 
+
                 try { 
                     const res = await fetch('{{ route("staff.leave.history") }}'); 
                     const leaves = await res.json(); 
-                    if(leaves.length === 0) { 
+
+                    if (leaves.length === 0) { 
                         content.innerHTML = '<div class="text-center py-8 text-gray-500">لا توجد إجازات سابقة</div>'; 
                         return; 
                     } 
-                    content.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-right"><thead><tr style="border-bottom:2px solid #B08D57;"><th class="p-2">نوع الإجازة</th><th class="p-2">التفاصيل</th><th class="p-2">الحالة</th><th class="p-2">ملاحظة الإدارة</th><th class="p-2">تاريخ الطلب</th></tr></thead><tbody>${leaves.map(l => `<tr style="border-bottom:1px solid #eee;cursor:pointer;" onclick="showLeaveDetails(${l.id})"><td class="p-2">${l.leave_type}</td><td class="p-2" style="color:#B08D57;font-size:13px;">${l.display_text}</td><td class="p-2"><span class="px-2 py-1 rounded-full text-xs" style="background:${l.status_color}20;color:${l.status_color}">${l.status_name}</span></td><td class="p-2 text-sm" style="color:${l.admin_notes ? '#ef4444' : '#aaa'}">${l.admin_notes || '—'}</td><td class="p-2">${new Date(l.created_at).toLocaleDateString('ar')}</td></tr>`).join('')}</tbody>}</div><div class="mt-3 text-xs text-gray-400 text-center">💡 اضغط على أي صف لرؤية التفاصيل</div>`; 
-                } catch(e) { 
+
+                    content.innerHTML = `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right">
+                                <thead>
+                                    <tr style="border-bottom:2px solid #B08D57;">
+                                        <th class="p-2">نوع الإجازة</th>
+                                        <th class="p-2">التفاصيل</th>
+                                        <th class="p-2">الحالة</th>
+                                        <th class="p-2">تاريخ الطلب</th>
+                                     </tr>
+                                </thead>
+                                <tbody>
+                                    ${leaves.map(l => `
+                                        <tr style="border-bottom:1px solid #eee; cursor:pointer;"
+                                            onclick="showLeaveDetails(${l.id})">
+                                            <td class="p-2">${l.leave_type_arabic ?? l.leave_type}</td>
+                                            <td class="p-2" style="color:#B08D57;font-size:13px;">${l.display_text}</td>
+                                            <td class="p-2">
+                                                <span class="px-2 py-1 rounded-full text-xs"
+                                                      style="background:${l.status_color}20;color:${l.status_color}">
+                                                    ${l.status_name}
+                                                </span>
+                                            </td>
+                                            <td class="p-2">${new Date(l.created_at).toLocaleDateString('ar')}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3 text-xs text-gray-400 text-center">💡 اضغط على أي صف لرؤية التفاصيل</div>
+                    `;
+                } catch (e) { 
                     console.error(e); 
                     content.innerHTML = '<div class="text-center py-8 text-red-500">حدث خطأ في التحميل</div>'; 
                 } 
@@ -490,7 +531,6 @@
                 fetch(`/staff/leave/${id}`).then(r => r.json()).then(l => { 
                     let d = `📋 تفاصيل الإجازة\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 النوع: ${l.leave_type}\n📅 ${l.display_text}\n📝 السبب: ${l.reason || 'لا يوجد سبب'}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 الحالة: ${l.status_name}`; 
                     if(l.admin_notes) d += `\n📝 ملاحظة الإدارة: ${l.admin_notes}`; 
-                    if(l.reviewed_at) d += `\n📅 تاريخ المراجعة: ${new Date(l.reviewed_at).toLocaleDateString('ar')}`; 
                     alert(d); 
                 }).catch(e => { 
                     console.error(e); 
@@ -518,7 +558,7 @@
                         content.innerHTML = '<div class="text-center py-8 text-gray-500">لا توجد سجلات رواتب سابقة</div>'; 
                         return; 
                     } 
-                    content.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-right"><thead><tr style="border-bottom:2px solid #B08D57;"><th class="p-2">الشهر</th><th class="p-2">السنة</th><th class="p-2">الأساسي</th><th class="p-2">الخصم</th><th class="p-2">المكافأة</th><th class="p-2">الصافي</th><th class="p-2">الحالة</th></tr></thead><tbody>${salaries.map(s => `<tr style="border-bottom:1px solid #eee;cursor:pointer;" onclick="showSalaryDetails(${s.year},${s.month})"><td class="p-2">${s.month_name}</td><td class="p-2">${s.year}</td><td class="p-2">${s.base_salary} د.أ</td><td class="p-2 text-red-600">-${s.deduction} د.أ</td><td class="p-2 text-green-600">+${s.bonus} د.أ</td><td class="p-2 font-bold" style="color:#B08D57;">${s.net_salary} د.أ</td><td class="p-2">${s.is_paid ? '<span class="text-green-600">✓ تم الدفع</span>' : '<span class="text-yellow-600">⏳ قيد الانتظار</span>'}</span></td></tr>`).join('')}</tbody>}</div><div class="mt-3 text-xs text-gray-400 text-center">💡 اضغط على أي صف لرؤية التفاصيل</div>`; 
+                    content.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-right"><thead><tr style="border-bottom:2px solid #B08D57;"><th class="p-2">الشهر</th><th class="p-2">السنة</th><th class="p-2">الأساسي</th><th class="p-2">الخصم</th><th class="p-2">المكافأة</th><th class="p-2">الصافي</th><th class="p-2">الحالة</th></tr></thead><tbody>${salaries.map(s => `<tr style="border-bottom:1px solid #eee;cursor:pointer;" onclick="showSalaryDetails(${s.year},${s.month})"><td class="p-2">${s.month_name}</td><td class="p-2">${s.year}</td><td class="p-2">${s.base_salary} د.أ</td><td class="p-2 text-red-600">-${s.deduction} د.أ</td><td class="p-2 text-green-600">+${s.bonus} د.أ</td><td class="p-2 font-bold" style="color:#B08D57;">${s.net_salary} د.أ</td><td class="p-2">${s.is_paid ? '<span class="text-green-600">✓ تم الدفع</span>' : '<span class="text-yellow-600">⏳ قيد الانتظار</span>'}</span></td></tr>`).join('')}</tbody></div><div class="mt-3 text-xs text-gray-400 text-center">💡 اضغط على أي صف لرؤية التفاصيل</div>`; 
                 } catch(e) { 
                     console.error(e); 
                     content.innerHTML = '<div class="text-center py-8 text-red-500">حدث خطأ في التحميل</div>'; 
@@ -554,28 +594,28 @@
             }
             
             // دالة تحديث عدد الرسائل غير المقروءة
-          async function updateUnreadCount() { 
-    try { 
-        const response = await fetch('{{ route("staff.chat.unread-count") }}', {
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
+            async function updateUnreadCount() { 
+                try { 
+                    const response = await fetch('{{ route("staff.chat.unread-count") }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    }); 
+                    const d = await response.json(); 
+                    const b = document.getElementById('chat-unread-badge'); 
+                    if(b) {
+                        if(d.count > 0 && !document.getElementById('chatPopup').classList.contains('show')) { 
+                            b.textContent = d.count; 
+                            b.classList.remove('hidden'); 
+                        } else { 
+                            b.classList.add('hidden'); 
+                        } 
+                    }
+                } catch(e) { 
+                    console.error(e); 
+                } 
             }
-        }); 
-        const d = await response.json(); 
-        const b = document.getElementById('chat-unread-badge'); 
-        if(b) {
-            if(d.count > 0 && !document.getElementById('chatPopup').classList.contains('show')) { 
-                b.textContent = d.count; 
-                b.classList.remove('hidden'); 
-            } else { 
-                b.classList.add('hidden'); 
-            } 
-        }
-    } catch(e) { 
-        console.error(e); 
-    } 
-}
             
             // تشغيل تحديث عدد الرسائل كل 5 ثواني
             if (document.getElementById('chat-unread-badge')) {
