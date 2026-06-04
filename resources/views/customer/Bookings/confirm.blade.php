@@ -46,7 +46,7 @@
                                         'monthly' => 'شهرية',
                                         'one-time' => 'مرة واحدة',
                                     ];
-                                    $lashDuration = session('booking.lash_duration', 'غير محدد');
+                                    $lashDuration = session('booking.lash_duration', 'monthly');
                                 @endphp
                                 {{ $durations[$lashDuration] ?? $lashDuration }}
                             </span>
@@ -100,10 +100,10 @@
                             <span class="font-medium" style="color: #2B1E1A;">{{ session('booking.location') == 'salon' ? 'في الصالون' : 'خدمة منزلية' }}</span>
                         </div>
 
-                        {{-- السعر --}}
-                        <div class="flex justify-between items-center pt-3">
-                            <span class="font-bold" style="color: #2B1E1A;">💰 المبلغ الإجمالي</span>
-                            <span class="text-2xl font-bold" style="color: #B08D57;">
+                        {{-- السعر قبل الخصم --}}
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-sm" style="color: #7C8574;">💰 السعر قبل الخصم</span>
+                            <span class="font-medium" style="color: #2B1E1A;">
                                 @php
                                     $servicesPrice = [
                                         'classic' => 30,
@@ -114,12 +114,74 @@
                                         'removal' => 5
                                     ];
                                     $originalPrice = $servicesPrice[session('booking.service_type')] ?? 30;
-                                    $finalPrice = $originalPrice;
-                                    if(session('booking.location') == 'home') $finalPrice += 10;
+                                    
+                                    $lashDuration = session('booking.lash_duration', 'monthly');
+                                    
+                                    if ($lashDuration == 'one-time') {
+                                        $priceAfterDuration = $originalPrice * 0.5;
+                                    } elseif ($lashDuration == 'weekly') {
+                                        $priceAfterDuration = $originalPrice * 0.65;
+                                    } else {
+                                        $priceAfterDuration = $originalPrice;
+                                    }
+                                    
+                                    $user = auth()->user();
+                                    
+                                    // السعر بعد مدة الرموش
+                                    $basePrice = $priceAfterDuration;
+                                    
+                                    // إضافة 10 د.أ للخدمة المنزلية
+                                    if(session('booking.location') == 'home') {
+                                        $basePrice += 10;
+                                    }
                                 @endphp
-                                {{ number_format($finalPrice, 2) }} د.أ
+                                {{ number_format($basePrice, 2) }} د.أ
                             </span>
                         </div>
+
+                        {{-- ✅ خيار استخدام الخصم (إذا عندها 50 نقطة او اكثر) --}}
+                        @php
+                            $userPoints = $user->loyalty_points ?? 0;
+                            $hasDiscount = $userPoints >= 50;
+                            $discountValue = floor($userPoints / 50) * 5; // كل 50 نقطة = 5 دنانير
+                            $finalPriceAfterDiscount = $basePrice - $discountValue;
+                            if ($finalPriceAfterDiscount < 0) $finalPriceAfterDiscount = 0;
+                        @endphp
+
+                        @if($hasDiscount)
+                        <div class="rounded-2xl p-4 mt-2" style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981;">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-gift text-xl" style="color: #10b981;"></i>
+                                    <div>
+                                        <span class="font-bold" style="color: #2B1E1A;">🎁 لديك خصم متاح!</span>
+                                        <p class="text-sm" style="color: #7C8574;">
+                                            خصم {{ $discountValue }} دينار (باستخدام {{ floor($userPoints / 50) * 50 }} نقطة)
+                                        </p>
+                                        <p class="text-xs" style="color: #10b981;">
+                                            رصيدك الحالي: {{ $userPoints }} نقطة
+                                        </p>
+                                    </div>
+                                </div>
+                                <input type="checkbox" name="use_discount" id="use_discount" value="1" class="w-5 h-5 rounded" style="accent-color: #10b981;">
+                            </label>
+                        </div>
+
+                        {{-- السعر بعد الخصم (يتغير بالجافا سكريبت) --}}
+                        <div class="flex justify-between items-center pt-3 border-t" style="border-color: rgba(176, 141, 87, 0.2);">
+                            <span class="font-bold text-lg" style="color: #2B1E1A;">💰 المبلغ الإجمالي</span>
+                            <span class="text-2xl font-bold" id="totalPrice" style="color: #B08D57;">{{ number_format($basePrice, 2) }} د.أ</span>
+                        </div>
+                        <div id="discountInfo" class="text-center text-sm hidden" style="color: #10b981;">
+                            🎉 تم تطبيق خصم {{ $discountValue }} دينار!
+                        </div>
+                        @else
+                        {{-- لا يوجد خصم --}}
+                        <div class="flex justify-between items-center pt-3 border-t" style="border-color: rgba(176, 141, 87, 0.2);">
+                            <span class="font-bold text-lg" style="color: #2B1E1A;">💰 المبلغ الإجمالي</span>
+                            <span class="text-2xl font-bold" style="color: #B08D57;">{{ number_format($basePrice, 2) }} د.أ</span>
+                        </div>
+                        @endif
 
                     </div>
                 </div>
@@ -129,18 +191,44 @@
                     <a href="{{ route('customer.bookings.step4') }}" class="flex-1 text-center py-3 rounded-xl font-bold transition hover:opacity-80" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
                         <i class="fas fa-arrow-right ml-2"></i> رجوع
                     </a>
-                    <form action="{{ route('customer.bookings.store') }}" method="POST" class="flex-1">
+                    <form action="{{ route('customer.bookings.store') }}" method="POST" class="flex-1" id="bookingForm">
                         @csrf
+                        <input type="hidden" name="use_discount" id="use_discount_input" value="0">
                         <button type="submit" class="w-full py-3 rounded-xl font-bold transition shadow-md hover:shadow-lg" style="background: #B08D57; color: #F3EDE6;">
                             <i class="fas fa-check-circle ml-2"></i> تأكيد الحجز
                         </button>
                     </form>
                 </div>
 
-                {{-- ❌ تم إزالة زر واتساب العام من هنا ❌ --}}
-
             </div>
         </div>
     </div>
 </div>
+
+{{-- جافا سكريبت لتحديث السعر عند اختيار الخصم --}}
+@if($hasDiscount)
+<script>
+    const checkbox = document.getElementById('use_discount');
+    const totalPriceSpan = document.getElementById('totalPrice');
+    const discountInfoDiv = document.getElementById('discountInfo');
+    const discountInput = document.getElementById('use_discount_input');
+    
+    const basePrice = {{ $basePrice }};
+    const discountValue = {{ $discountValue }};
+    const finalPrice = {{ $finalPriceAfterDiscount }};
+    
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            totalPriceSpan.innerHTML = finalPrice.toFixed(2) + ' د.أ';
+            discountInfoDiv.classList.remove('hidden');
+            discountInput.value = '1';
+        } else {
+            totalPriceSpan.innerHTML = basePrice.toFixed(2) + ' د.أ';
+            discountInfoDiv.classList.add('hidden');
+            discountInput.value = '0';
+        }
+    });
+</script>
+@endif
+
 @endsection

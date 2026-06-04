@@ -10,39 +10,14 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    /**
-     * الحقول المسموح بتعبئتها
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'phone',
-        'role',
-        'loyalty_points',
-        'total_bookings',
-        'loyalty_discount_used',
-        'last_eye_shape',
-        'last_style_preference',
-        'last_lash_duration',
-        'avatar',
-        'base_salary',
-        'bonus',
-        'deduction',
-        'finance_password',
+        'name', 'email', 'password', 'phone', 'role',
+        'total_bookings', 'last_eye_shape', 'last_style_preference',
+        'last_lash_duration', 'avatar',
     ];
 
-    /**
-     * الحقول المخفية
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    /**
-     * تحويل أنواع البيانات
-     */
     protected function casts(): array
     {
         return [
@@ -51,177 +26,142 @@ class User extends Authenticatable
         ];
     }
 
-    // ========== العلاقات الأساسية ==========
-
-    /**
-     * علاقة العميل بحجوزاته
-     */
+    // ========== العلاقات ==========
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'user_id');
     }
 
-    /**
-     * علاقة الموظفة بالحجوزات المخصصة لها
-     */
     public function staffBookings()
     {
         return $this->hasMany(Booking::class, 'staff_id');
     }
 
-    /**
-     * علاقة العميل بنقاط الولاء
-     */
     public function loyaltyPoints()
     {
         return $this->hasOne(LoyaltyPoint::class);
     }
 
-    /**
-     * علاقة العميل بطابور الانتظار
-     */
     public function queues()
     {
         return $this->hasMany(Queue::class);
     }
 
-    /**
-     * ✅ علاقة العميل بتقييماته
-     */
     public function reviews()
     {
         return $this->hasMany(Review::class, 'user_id');
     }
 
-    /**
-     * ✅ علاقة الموظفة بالتقييمات التي حصلت عليها
-     */
     public function staffReviews()
     {
         return $this->hasMany(Review::class, 'staff_id');
     }
 
-    // ========== دوال التحقق من الصلاحيات ==========
-
-    /**
-     * هل المستخدم عميل؟
-     */
+    // ========== الصلاحيات ==========
     public function isCustomer()
     {
         return $this->role === 'customer';
     }
 
-    /**
-     * هل المستخدم موظفة؟
-     */
     public function isStaff()
     {
         return $this->role === 'staff';
     }
 
-    /**
-     * هل المستخدم مالك؟
-     */
     public function isOwner()
     {
         return $this->role === 'owner';
     }
 
-    // ========== نظام نقاط الولاء ==========
-
+    // ========== نظام النقاط والخصم الاحترافي ==========
+    
     /**
-     * الحصول على نقاط الولاء (بديل للعمود)
+     * الحصول على رصيد النقاط الحالي
      */
-    public function getLoyaltyPointsAttribute(mixed $value): int  // ✅ تم إصلاح التحذير
+    public function getPointsAttribute(): int
     {
-        return (int)($value ?? 0);
+        return $this->loyaltyPoints ? $this->loyaltyPoints->points : 0;
     }
-
+    
     /**
-     * إضافة نقاط ولاء
+     * إضافة نقاط للعميلة (بعد إتمام الحجز)
      */
-    public function addLoyaltyPoints(int $points): void
+    public function addPoints(int $points): void
     {
-        $this->increment('loyalty_points', $points);
+        if ($this->loyaltyPoints) {
+            $this->loyaltyPoints->increment('points', $points);
+        } else {
+            $this->loyaltyPoints()->create(['points' => $points]);
+        }
     }
-
+    
     /**
-     * خصم نقاط ولاء
+     * خصم نقاط من العميلة (عند استخدام الخصم)
      */
-    public function deductLoyaltyPoints(int $points): void
+    public function deductPoints(int $points): void
     {
-        $this->decrement('loyalty_points', $points);
+        if ($this->loyaltyPoints) {
+            $this->loyaltyPoints->decrement('points', $points);
+        }
     }
-
-    // ========== نظام الخصم التلقائي ==========
-
+    
     /**
-     * عدد الحجوزات المكتملة
+     * هل العميلة مؤهلة للحصول على خصم؟
+     * (تحتاج 50 نقطة على الأقل)
      */
-    public function getCompletedBookingsCountAttribute(): int
+    public function isEligibleForDiscount(): bool
     {
-        return $this->bookings()->where('status', 'completed')->count();
+        return $this->points >= 50;
     }
-
+    
     /**
-     * عدد الحجوزات المتبقية للخصم القادم
+     * قيمة الخصم المستحق (كل 50 نقطة = 5 دنانير)
+     * الحد الأقصى 10 دنانير في الحجز الواحد
      */
-    public function getNextDiscountBookingAttribute(): int
+    public function getDiscountAmount(): float
     {
-        $completed = $this->completed_bookings_count;
-        
-        // إذا كان العدد 0 أو ليس مضاعفاً للـ 5
-        if ($completed < 5) {
-            return 5 - $completed;
+        if (!$this->isEligibleForDiscount()) {
+            return 0;
         }
         
-        // إذا كان العدد مضاعفاً للـ 5
-        if ($completed % 5 == 0) {
-            return 0; // الحجز الحالي عليه خصم
+        $maxDiscountPerBooking = 10; // أقصى خصم 10 دنانير في الحجز الواحد
+        $calculatedDiscount = floor($this->points / 50) * 5;
+        
+        return min($calculatedDiscount, $maxDiscountPerBooking);
+    }
+    
+    /**
+     * عدد النقاط التي سيتم خصمها عند استخدام الخصم
+     * (لكل 5 دنانير = 50 نقطة)
+     */
+    public function getPointsToDeduct(): int
+    {
+        if (!$this->isEligibleForDiscount()) {
+            return 0;
         }
         
-        // حساب المتبقي للوصول للمضاعف التالي
-        $nextMultiple = ceil(($completed + 1) / 5) * 5;
-        return $nextMultiple - $completed;
+        $discountAmount = $this->getDiscountAmount();
+        return ($discountAmount / 5) * 50;
     }
-
+    
     /**
-     * نسبة الخصم المستحقة
+     * تطبيق الخصم (يخصم فقط النقاط المستحقة حسب قيمة الخصم)
+     * مثال: 120 نقطة → خصم 10 دنانير → يخصم 100 نقطة → يتبقى 20 نقطة
      */
-    public function getDiscountPercentageAttribute(): int
+    public function applyDiscount(): float
     {
-        $completed = $this->completed_bookings_count;
+        $discountAmount = $this->getDiscountAmount();
+        $pointsToDeduct = $this->getPointsToDeduct();
         
-        // خصم 15% فقط عند إتمام 5، 10، 15، 20 حجز...
-        if ($completed >= 5 && $completed % 5 == 0 && $this->loyalty_discount_used == 0) {
-            return 15;
+        if ($pointsToDeduct > 0 && $this->points >= $pointsToDeduct) {
+            $this->deductPoints($pointsToDeduct);
+            return $discountAmount;
         }
         
         return 0;
     }
 
-    /**
-     * هل يمكن تطبيق الخصم على هذا الحجز؟
-     */
-    public function canApplyDiscount(): bool
-    {
-        $completed = $this->completed_bookings_count;
-        return $completed >= 5 && $completed % 5 == 0 && $this->loyalty_discount_used == 0;
-    }
-
-    /**
-     * تطبيق الخصم (يتم استدعاؤه عند استخدام الخصم)
-     */
-    public function applyDiscount(): void
-    {
-        $this->increment('loyalty_discount_used');
-    }
-
     // ========== دوال مساعدة ==========
-
-    /**
-     * الحصول على اسم المستخدم مع اللقب المناسب
-     */
     public function getGreetingAttribute(): string
     {
         $name = $this->name;
@@ -229,16 +169,15 @@ class User extends Authenticatable
         
         if ($hour < 12) {
             return "صباح الخير {$name} 🌞";
-        } elseif ($hour < 18) {
-            return "مساء الخير {$name} 🌤️";
-        } else {
-            return "مساء النور {$name} 🌙";
         }
+        
+        if ($hour < 18) {
+            return "مساء الخير {$name} 🌤️";
+        }
+        
+        return "مساء النور {$name} 🌙";
     }
 
-    /**
-     * الحصول على رابط صورة المستخدم
-     */
     public function getAvatarAttribute(): string
     {
         return $this->avatar ?? 'https://ui-avatars.com/api/?background=ec4899&color=fff&name=' . urlencode($this->name);
