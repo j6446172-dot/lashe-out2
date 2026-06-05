@@ -8,7 +8,6 @@
 
     <title>{{ config('app.name', 'Lashe Out') }} ✨</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Font Awesome -->

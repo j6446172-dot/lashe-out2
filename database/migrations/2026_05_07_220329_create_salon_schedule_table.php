@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->integer('day_of_week'); // 0 = Sunday, 1 = Monday, etc.
             $table->boolean('is_open')->default(true);
-            $table->time('open_time')->nullable();
-            $table->time('close_time')->nullable();
             $table->time('start_time')->nullable();  // أضف هذا
             $table->time('end_time')->nullable();    // أضف هذا
             $table->timestamps();

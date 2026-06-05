@@ -6,14 +6,11 @@
         <div class="flex justify-center">
             <div class="w-full lg:w-10/12">
                 
-                {{-- Header --}}
-                <div class="rounded-2xl p-6 text-center mb-6 shadow-md"
-                     style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+                <div class="rounded-2xl p-6 text-center mb-6 shadow-md" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
                     <h1 class="text-2xl font-bold" style="color: #F3EDE6;">👩‍💼 الموظفات</h1>
                     <p class="text-sm mt-1" style="color: rgba(243, 237, 230, 0.8);">إدارة فريق العمل</p>
                 </div>
 
-                {{-- بطاقات الإحصائيات --}}
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div class="rounded-xl p-5 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <p class="text-sm" style="color: #7C8574;">👥 إجمالي الموظفات</p>
@@ -33,13 +30,11 @@
                     </div>
                 </div>
 
-                {{-- أزرار --}}
                 <div class="flex justify-between items-center mb-4">
                     <button onclick="openAddModal()" class="px-6 py-2.5 rounded-xl font-bold transition shadow-md" style="background: #B08D57; color: #F3EDE6;">➕ إضافة موظفة</button>
                     <a href="{{ route('owner.dashboard') }}" class="px-5 py-2.5 rounded-xl font-bold transition" style="background: rgba(176, 141, 87, 0.1); color: #B08D57; text-decoration: none;">← العودة</a>
                 </div>
 
-                {{-- ========== جدول الموظفات ========== --}}
                 <div class="rounded-xl p-6 overflow-x-auto" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                     <table class="w-full text-right" style="border-collapse: collapse; min-width: 1000px;">
                         <thead>
@@ -87,9 +82,7 @@
                                         <i class="fas fa-comment-dots"></i>
                                         <span>تواصل</span>
                                         @if($unread > 0)
-                                            <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">
-                                                {{ $unread }}
-                                            </span>
+                                            <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">{{ $unread }}</span>
                                         @endif
                                     </button>
                                 </td>
@@ -155,295 +148,187 @@
                 <i class="fas fa-comment-dots text-white"></i>
                 <span class="font-bold text-white" id="chatStaffName">محادثة مع الموظفة</span>
             </div>
-            <button onclick="closeStaffChat()" class="text-white/70 hover:text-white">
-                <i class="fas fa-times"></i>
-            </button>
+            <button onclick="closeStaffChat()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
         </div>
-        
         <div id="staffChatMessages" class="h-96 overflow-y-auto p-4 space-y-3" style="background: #F9F7F4;">
             <div class="text-center text-gray-400 text-sm py-10">
                 <i class="fas fa-comments text-4xl mb-2 block"></i>
                 <p>ابدأ المحادثة مع الموظفة</p>
             </div>
         </div>
-        
         <div class="p-3 border-t" style="border-color: rgba(176, 141, 87, 0.2); background: white;">
             <form id="staffChatForm" class="flex gap-2">
                 @csrf
                 <input type="hidden" id="staffChatId" value="">
-                <input type="text" id="staffChatMessage" 
-                       class="flex-1 rounded-xl px-4 py-2 border focus:outline-none focus:border-[#B08D57] text-sm"
-                       style="border-color: rgba(176, 141, 87, 0.3);"
-                       placeholder="اكتب رسالتك...">
-                <button type="submit" class="px-4 py-2 rounded-xl text-white transition hover:opacity-90" style="background: #B08D57;">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <input type="text" id="staffChatMessage" class="flex-1 rounded-xl px-4 py-2 border focus:outline-none focus:border-[#B08D57] text-sm" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="اكتب رسالتك...">
+                <button type="submit" class="px-4 py-2 rounded-xl text-white transition hover:opacity-90" style="background: #B08D57;"><i class="fas fa-paper-plane"></i></button>
             </form>
         </div>
     </div>
 </div>
 
 <script>
-    // دوال النوافذ
-    function showDetail(id) {
+function showDetail(id) {
     document.getElementById('staffModal').classList.remove('hidden');
     document.getElementById('staffModal').classList.add('flex');
     document.getElementById('modalContent').innerHTML = '<p class="text-center" style="color:#7C8574;">جاري التحميل...</p>';
-    fetch(`/owner/staff-detail/${id}?t=${Date.now()}`).then(r=>r.json()).then(data=>{
-        document.getElementById('modalContent').innerHTML = `
-            <div class="mb-4"><strong style="color:#2B1E1A;">📊 إحصائيات</strong></div>
-            <div class="mb-4 p-4 rounded-xl" style="background:#f9f9f9;">
-                <p>📅 حجوزات الشهر: ${data.total_bookings}</p>
-                <p>❌ نسبة الإلغاء: ${data.cancel_rate}%</p>
-                <p>⭐ التقييم: ${data.rating}</p>
-                <p>💰 إيراداتها: ${data.revenue} د.أ</p>
-            </div>
-            <div class="mb-4"><strong style="color:#2B1E1A;">💼 التفاصيل المالية</strong></div>
-            <div class="p-4 rounded-xl" style="background:#f9f9f9;">
-                <p>💰 الأساسي: ${data.base_salary} د.أ</p>
-                <p style="color:#ef4444;">🏷️ الخصم: -${data.deduction} د.أ</p>
-                <p style="color:#10b981;">🎁 المكافأة: +${data.bonus} د.أ</p>
-                <hr class="my-2">
-                <p style="font-weight:bold;">💵 الصافي: ${data.net_salary} د.أ</p>
-            </div>
-            
+    fetch('/owner/staff-detail/' + id).then(function(r){ return r.json(); }).then(function(data){
+        var html = '';
+        html += '<div class="mb-4"><strong style="color:#2B1E1A;">📊 إحصائيات</strong></div>';
+        html += '<div class="mb-4 p-4 rounded-xl" style="background:#f9f9f9;">';
+        html += '<p>📅 حجوزات الشهر: ' + data.total_bookings + '</p>';
+        html += '<p>❌ نسبة الإلغاء: ' + data.cancel_rate + '%</p>';
+        html += '<p>⭐ التقييم: ' + data.rating + '</p>';
+        html += '<p>💰 إيراداتها: ' + data.revenue + ' د.أ</p>';
+        html += '</div>';
+        html += '<div class="mb-4"><strong style="color:#2B1E1A;">💼 التفاصيل المالية</strong></div>';
+        html += '<div class="p-4 rounded-xl" style="background:#f9f9f9;">';
+        html += '<p>💰 الأساسي: ' + data.base_salary + ' د.أ</p>';
+        html += '<p style="color:#ef4444;">🏷️ الخصم: -' + data.deduction + ' د.أ</p>';
+        html += '<p style="color:#10b981;">🎁 المكافأة: +' + data.bonus + ' د.أ</p>';
+        html += '<hr class="my-2">';
+        html += '<p style="font-weight:bold;">💵 الصافي: ' + data.net_salary + ' د.أ</p>';
+        html += '</div>';
+        document.getElementById('modalContent').innerHTML = html;
     });
 }
-    
-    function closeModal(){ 
-        document.getElementById('staffModal').classList.add('hidden'); 
-        document.getElementById('staffModal').classList.remove('flex'); 
-    }
-    
-    function openAddModal(){ 
-        document.getElementById('addStaffModal').classList.remove('hidden'); 
-        document.getElementById('addStaffModal').classList.add('flex'); 
-    }
-    
-    function closeAddModal(){ 
-        document.getElementById('addStaffModal').classList.add('hidden'); 
-        document.getElementById('addStaffModal').classList.remove('flex'); 
-    }
-    
-    function addStaff(){ 
-        const form=document.getElementById('addStaffForm'); 
-        const data=new FormData(form); 
-        fetch('/owner/staff/add',{
-            method:'POST',
-            headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}'},
-            body:new URLSearchParams(data)
-        }).then(r=>r.json()).then(res=>{
-            if(res.success) location.reload(); 
-            else alert(res.message||'خطأ');
-        }); 
-    }
-    
-    document.getElementById('staffModal').addEventListener('click',function(e){
-        if(e.target===this) closeModal();
-    });
 
-    // دوال الشات
-    let staffChatInterval = null;
-    let currentStaffId = null;
-    let lastStaffMessageId = 0;
+function closeModal(){ 
+    document.getElementById('staffModal').classList.add('hidden'); 
+    document.getElementById('staffModal').classList.remove('flex'); 
+}
+
+function openAddModal(){ 
+    document.getElementById('addStaffModal').classList.remove('hidden'); 
+    document.getElementById('addStaffModal').classList.add('flex'); 
+}
+
+function closeAddModal(){ 
+    document.getElementById('addStaffModal').classList.add('hidden'); 
+    document.getElementById('addStaffModal').classList.remove('flex'); 
+}
+
+function addStaff(){ 
+    var form = document.getElementById('addStaffForm'); 
+    var data = new FormData(form); 
+    fetch('/owner/staff/add',{
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}'},
+        body: new URLSearchParams(data)
+    }).then(function(r){ return r.json(); }).then(function(res){
+        if(res.success) location.reload(); 
+        else alert(res.message||'خطأ');
+    }); 
+}
+
+document.getElementById('staffModal').addEventListener('click',function(e){
+    if(e.target === this) closeModal();
+});
+
+var staffChatInterval = null;
+var currentStaffId = null;
+var lastStaffMessageId = 0;
+
 function openChatWithStaff(staffId, staffName) {
     currentStaffId = staffId;
-
-    document.getElementById('chatStaffName').innerHTML =
-        `<i class="fas fa-comment-dots ml-1"></i> محادثة مع ${staffName}`;
-
+    document.getElementById('chatStaffName').innerHTML = '<i class="fas fa-comment-dots ml-1"></i> محادثة مع ' + staffName;
     document.getElementById('staffChatId').value = staffId;
-
-    const modal = document.getElementById('staffChatModal');
+    var modal = document.getElementById('staffChatModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-
     loadStaffMessages(staffId);
-
-    if (staffChatInterval) {
-        clearInterval(staffChatInterval);
-    }
-
-    staffChatInterval = setInterval(() => {
-        loadStaffMessages(currentStaffId);
-    }, 3000);
-
-    fetch('{{ route("owner.chat.mark-read") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            staff_id: staffId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-
-        const buttons = document.querySelectorAll('button');
-
-        buttons.forEach(btn => {
-
-            const onclickAttr = btn.getAttribute('onclick');
-
-            if (
-                onclickAttr &&
-                onclickAttr.includes(`openChatWithStaff(${staffId}`)
-            ) {
-
-                const badge = btn.querySelector(
-                    'span[style*="background: #ef4444"]'
-                );
-
-                if (badge) {
-                    badge.remove();
-                }
-            }
-        });
-
-    })
-    .catch(error => {
-        console.error(error);
-    });
+    if (staffChatInterval) clearInterval(staffChatInterval);
+    staffChatInterval = setInterval(function(){ loadStaffMessages(currentStaffId); }, 3000);
 }
 
-    function closeStaffChat() {
-        const modal = document.getElementById('staffChatModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        if (staffChatInterval) {
-            clearInterval(staffChatInterval);
-            staffChatInterval = null;
-        }
-        currentStaffId = null;
-    }
+function closeStaffChat() {
+    var modal = document.getElementById('staffChatModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    if (staffChatInterval) { clearInterval(staffChatInterval); staffChatInterval = null; }
+    currentStaffId = null;
+}
 
-    async function loadStaffMessages(staffId) {
-        if (!staffId) return;
-        
-        try {
-            const response = await fetch(`/owner/chat/staff/${staffId}/messages`);
-            const messages = await response.json();
-            const container = document.getElementById('staffChatMessages');
-            
-            if (messages.length > 0) {
-                let newLastId = messages[messages.length - 1].id;
-                
-                if (newLastId > lastStaffMessageId) {
-                    container.innerHTML = '';
-                    messages.forEach(msg => addStaffMessageToPopup(msg));
-                    lastStaffMessageId = newLastId;
-                    container.scrollTop = container.scrollHeight;
-                }
-            } else {
-                if (container.innerHTML === '' || container.innerHTML.includes('ابدأ المحادثة')) {
-                    container.innerHTML = `
-                        <div class="text-center text-gray-400 text-sm py-10">
-                            <i class="fas fa-comments text-4xl mb-2 block"></i>
-                            <p>ابدأ المحادثة مع الموظفة</p>
-                        </div>
-                    `;
-                }
+async function loadStaffMessages(staffId) {
+    if (!staffId) return;
+    try {
+        var response = await fetch('/owner/chat/staff/' + staffId + '/messages');
+        var messages = await response.json();
+        var container = document.getElementById('staffChatMessages');
+        if (messages.length > 0) {
+            var newLastId = messages[messages.length - 1].id;
+            if (newLastId > lastStaffMessageId) {
+                container.innerHTML = '';
+                messages.forEach(function(msg){ addStaffMessageToPopup(msg); });
+                lastStaffMessageId = newLastId;
+                container.scrollTop = container.scrollHeight;
             }
-        } catch (error) {
-            console.error('Error loading staff messages:', error);
-        }
-    }
-
-    function addStaffMessageToPopup(msg) {
-        const container = document.getElementById('staffChatMessages');
-        const isMine = msg.from_user_id == {{ auth()->id() }};
-        
-        if (container.innerHTML.includes('ابدأ المحادثة')) {
-            container.innerHTML = '';
-        }
-        
-        const messageDiv = document.createElement('div');
-        
-        if (isMine) {
-            messageDiv.className = 'flex justify-end mb-2';
-            messageDiv.innerHTML = `
-                <div class="max-w-[80%] bg-[#B08D57] text-white rounded-2xl rounded-br-none px-3 py-2 shadow">
-                    <p class="text-sm">${escapeHtml(msg.message)}</p>
-                    <p class="text-[10px] text-white/60 mt-1">${formatTime(msg.created_at)}</p>
-                </div>
-            `;
         } else {
-            messageDiv.className = 'flex justify-start mb-2';
-            messageDiv.innerHTML = `
-                <div class="max-w-[80%] bg-white rounded-2xl rounded-bl-none px-3 py-2 shadow" style="border-right: 2px solid #B08D57;">
-                    <div class="flex items-center gap-1 mb-1">
-                        <i class="fas fa-user-circle text-[#B08D57] text-[10px]"></i>
-                        <span class="text-[10px] font-bold" style="color: #B08D57;">الموظفة</span>
-                    </div>
-                    <p class="text-sm text-gray-700">${escapeHtml(msg.message)}</p>
-                    <p class="text-[10px] text-gray-400 mt-1">${formatTime(msg.created_at)}</p>
-                </div>
-            `;
-        }
-        
-        container.appendChild(messageDiv);
-    }
-
-    document.getElementById('staffChatForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const staffId = document.getElementById('staffChatId').value;
-        const message = document.getElementById('staffChatMessage').value.trim();
-        if (!message || !staffId) return;
-        
-        const btn = e.target.querySelector('button[type="submit"]');
-        btn.disabled = true;
-        
-        try {
-            const response = await fetch('{{ route("owner.chat.send") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ 
-                    message: message,
-                    receiver_id: staffId 
-                })
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-                document.getElementById('staffChatMessage').value = '';
-                await loadStaffMessages(staffId);
+            if (container.innerHTML === '' || container.innerHTML.includes('ابدأ المحادثة')) {
+                container.innerHTML = '<div class="text-center text-gray-400 text-sm py-10"><i class="fas fa-comments text-4xl mb-2 block"></i><p>ابدأ المحادثة مع الموظفة</p></div>';
             }
-        } catch (error) {
-            console.error('Error:', error);
-        } finally {
-            btn.disabled = false;
-            document.getElementById('staffChatMessage').focus();
         }
-    });
+    } catch (error) { console.error('Error loading staff messages:', error); }
+}
 
-    document.getElementById('staffChatModal').addEventListener('click', function(e) {
-        if (e.target === this) closeStaffChat();
-    });
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+function addStaffMessageToPopup(msg) {
+    var container = document.getElementById('staffChatMessages');
+    var isMine = msg.from_user_id == {{ auth()->id() }};
+    if (container.innerHTML.includes('ابدأ المحادثة')) container.innerHTML = '';
+    var messageDiv = document.createElement('div');
+    if (isMine) {
+        messageDiv.className = 'flex justify-end mb-2';
+        messageDiv.innerHTML = '<div style="max-width:80%;background:#B08D57;color:white;border-radius:16px 16px 0 16px;padding:8px 12px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"><p style="font-size:14px;">' + escapeHtml(msg.message) + '</p><p style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:4px;">' + formatTime(msg.created_at) + '</p></div>';
+    } else {
+        messageDiv.className = 'flex justify-start mb-2';
+        messageDiv.innerHTML = '<div style="max-width:80%;background:white;border-radius:16px 16px 16px 0;padding:8px 12px;box-shadow:0 2px 4px rgba(0,0,0,0.1);border-right:2px solid #B08D57;"><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><i class="fas fa-user-circle" style="color:#B08D57;font-size:10px;"></i><span style="font-size:10px;font-weight:bold;color:#B08D57;">الموظفة</span></div><p style="font-size:14px;color:#374151;">' + escapeHtml(msg.message) + '</p><p style="font-size:10px;color:#9CA3AF;margin-top:4px;">' + formatTime(msg.created_at) + '</p></div>';
     }
+    container.appendChild(messageDiv);
+}
 
-    function formatTime(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
-    }
+document.getElementById('staffChatForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var staffId = document.getElementById('staffChatId').value;
+    var message = document.getElementById('staffChatMessage').value.trim();
+    if (!message || !staffId) return;
+    var btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+        var response = await fetch('{{ route("owner.chat.send") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ message: message, receiver_id: staffId })
+        });
+        var data = await response.json();
+        if (data.success) {
+            document.getElementById('staffChatMessage').value = '';
+            await loadStaffMessages(staffId);
+        }
+    } catch (error) { console.error('Error:', error); }
+    finally { btn.disabled = false; document.getElementById('staffChatMessage').focus(); }
+});
 
-    function deleteStaff(id, name) {
+document.getElementById('staffChatModal').addEventListener('click', function(e) {
+    if (e.target === this) closeStaffChat();
+});
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatTime(dateString) {
+    var date = new Date(dateString);
+    return date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+}
+
+function deleteStaff(id, name) {
     if (confirm('هل أنت متأكدة من حذف ' + name + '؟')) {
         fetch('/owner/staff/delete/' + id, {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-        })
-        .then(r => r.json())
-        .then(res => {
+        }).then(function(r){ return r.json(); }).then(function(res){
             if (res.success) location.reload();
         });
     }
