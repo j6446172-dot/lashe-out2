@@ -257,6 +257,9 @@ Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () 
 
     Route::put('/booking/{booking}/complete', [App\Http\Controllers\Staff\BookingController::class, 'complete'])->name('booking.complete');
     
+     Route::get('/monthly-stats', [App\Http\Controllers\Staff\DashboardController::class, 'monthlyStats'])->name('monthly-stats');
+    Route::get('/monthly-stats/data', [App\Http\Controllers\Staff\DashboardController::class, 'getMonthlyStatsData'])->name('monthly-stats.data');
+
     // إجازات
     Route::post('/leave/request', [App\Http\Controllers\Staff\LeaveController::class, 'request'])->name('leave.request');
     Route::get('/leave/history', [App\Http\Controllers\Staff\LeaveController::class, 'history'])->name('leave.history');
@@ -266,6 +269,12 @@ Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () 
     Route::get('/salary/current', [App\Http\Controllers\Staff\SalaryController::class, 'current'])->name('salary.current');
     Route::get('/salary/history', [App\Http\Controllers\Staff\SalaryController::class, 'history'])->name('salary.history');
     Route::get('/salary/{year}/{month}', [App\Http\Controllers\Staff\SalaryController::class, 'show'])->name('salary.show');
+
+     Route::post('/leave-notification/read/{id}',
+    [\App\Http\Controllers\Staff\DashboardController::class, 'markNotificationRead'])
+    ->name('leave-notification.read');
+    
+
 });
 
 // ========== مسارات لوحة التحكم العامة ==========
