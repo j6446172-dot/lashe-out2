@@ -8,6 +8,8 @@ use App\Models\LeaveRequest;
 use App\Models\User;
 use App\Models\Review;
 use App\Models\ChatMessage;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -113,12 +115,64 @@ return view('owner.dashboard', compact(
 ));
 
     }
-      public function approveLeave(int $id)
+public function approveLeave(int $id)
 {
-    LeaveRequest::find($id)->update(['status' => 'approved']);
-    return back()->with('success', 'تمت الموافقة ✅');
+    $leave = LeaveRequest::findOrFail($id);
+    $leave->update(['status' => 'approved', 'reviewed_at' => now()]);
+    
+    $staff = User::findOrFail($leave->staff_id);
+    $start = \Carbon\Carbon::parse($leave->start_date);
+    $end = \Carbon\Carbon::parse($leave->end_date);
+    $totalDays = (int)($start->diffInDays($end)) + 1;
+    
+    // تحديث دوام الموظفة
+    $current = $start->copy();
+    while ($current->lte($end)) {
+        $dayIndex = ($current->dayOfWeek + 1) % 7;
+        if ($dayIndex != 6) {
+            \DB::table('staff_schedule')
+                ->where('staff_id', $leave->staff_id)
+                ->where('day_of_week', $dayIndex)
+                ->update([
+                    'status' => $leave->leave_type,
+                    'start_time' => null,
+                    'end_time' => null,
+                    'updated_at' => now()
+                ]);
+        }
+        $current->addDay();
+    }
+    
+    // خصم الرصيد
+    if ($leave->leave_type == 'سنوية') {
+        $current = $staff->remaining_annual_leave ?? 14;
+        if ($current >= $totalDays) {
+            User::where('id', $leave->staff_id)
+                ->update(['remaining_annual_leave' => DB::raw("remaining_annual_leave - {$totalDays}")]);
+        } else {
+            return back()->with('error', 'رصيد الإجازات السنوية غير كاف');
+        }
+    } elseif ($leave->leave_type == 'مرضية') {
+        $current = $staff->remaining_sick_leave ?? 7;
+        if ($current >= $totalDays) {
+            User::where('id', $leave->staff_id)
+                ->update(['remaining_sick_leave' => DB::raw("remaining_sick_leave - {$totalDays}")]);
+        } else {
+            return back()->with('error', 'رصيد الإجازات المرضية غير كاف');
+        }
+    } elseif ($leave->leave_type == 'طارئة') {
+        $current = $staff->remaining_emergency_leave ?? 3;
+        if ($current >= $totalDays) {
+            User::where('id', $leave->staff_id)
+                ->update(['remaining_emergency_leave' => DB::raw("remaining_emergency_leave - {$totalDays}")]);
+        } else {
+            return back()->with('error', 'رصيد الإجازات الطارئة غير كاف');
+        }
+    }
+    
+    return redirect()->route('owner.staff')->with('success', 'تمت الموافقة ✅ وخصم ' . $totalDays . ' يوم');
+    
 }
-
 public function rejectLeave(int $id)
 {
     LeaveRequest::find($id)->update(['status' => 'rejected']);

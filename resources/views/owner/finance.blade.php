@@ -23,14 +23,14 @@
                         <p class="text-sm" style="color: #7C8574;">💰 الإيرادات</p>
                         <p class="text-2xl font-black mt-2" style="color: #B08D57;">{{ number_format($monthlyRevenue ?? 0) }} د.أ</p>
                     </div>
-                    <div class="rounded-xl p-5 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
+                    <div onclick="openExpensesModal()" class="rounded-xl p-5 text-center cursor-pointer hover:shadow-lg transition" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <p class="text-sm" style="color: #7C8574;">📉 المصاريف</p>
                         <p class="text-2xl font-black mt-2" style="color: #ef4444;">{{ number_format(($salaries ?? 0) + ($materials ?? 0) + ($rent ?? 0)) }} د.أ</p>
                     </div>
-                    <div class="rounded-xl p-5 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                        <p class="text-sm" style="color: #7C8574;">📈 صافي الربح</p>
-                        <p class="text-2xl font-black mt-2" style="color: {{ ($netProfit ?? 0) >= 0 ? '#10b981' : '#ef4444' }};">{{ number_format($netProfit ?? 0) }} د.أ</p>
-                    </div>
+                   <div onclick="openProfitModal()" class="rounded-xl p-5 text-center cursor-pointer hover:shadow-lg transition" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
+    <p class="text-sm" style="color: #7C8574;">📈 صافي الربح</p>
+    <p class="text-2xl font-black mt-2" style="color: {{ ($netProfit ?? 0) >= 0 ? '#10b981' : '#ef4444' }};">{{ number_format($netProfit ?? 0) }} د.أ</p>
+</div>
                     <div class="rounded-xl p-5 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <p class="text-sm" style="color: #7C8574;">📊 نقطة التعادل</p>
                         <p class="text-md font-black mt-2" style="color: {{ ($monthlyRevenue ?? 0) >= ($salaries + $materials + $rent) ? '#10b981' : '#ef4444' }};">
@@ -123,10 +123,71 @@
     </div>
 </div>
 
+{{-- نافذة تعديل المصاريف --}}
+<div id="expensesModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" style="display: none;">
+    <div class="rounded-2xl w-full max-w-md mx-4" style="background: rgba(255, 255, 255, 0.95);">
+        <div class="p-4" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+            <h3 style="color: #F3EDE6;">📊 تعديل المصاريف</h3>
+        </div>
+        <div class="p-6">
+            <form method="POST" action="{{ route('owner.finance.update-expenses') }}">
+                @csrf
+                <label>👩‍💼 إجمالي الرواتب</label>
+<input type="number" name="salaries" value="{{ $salaries ?? 0 }}" class="w-full mb-3 px-4 py-3 rounded-xl">
+                <label>💰 الإيجار</label>
+                <input type="number" name="rent" value="{{ $rent ?? 60 }}" class="w-full mb-3 px-4 py-3 rounded-xl">
+                <label>🧴 نسبة المواد (%)</label>
+                <input type="number" name="materials_percentage" value="6" class="w-full mb-3 px-4 py-3 rounded-xl">
+                <label>📦 مصاريف أخرى</label>
+                <input type="number" name="other_expenses" value="0" class="w-full mb-4 px-4 py-3 rounded-xl">
+                <div class="flex gap-3">
+                    <button type="submit" style="background:#B08D57;color:white;padding:12px;border-radius:12px;flex:1;">💾 حفظ</button>
+                    <button type="button" onclick="closeExpensesModal()" style="background:#eee;padding:12px;border-radius:12px;flex:1;">✕ إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 new Chart(document.getElementById('revenueChart'),{type:'bar',data:{labels:{!! json_encode($chartMonths ?? []) !!},datasets:[{data:{!! json_encode($chartRevenue ?? []) !!},backgroundColor:'#B08D57',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
 
 new Chart(document.getElementById('expensesChart'),{type:'doughnut',data:{labels:['رواتب','مواد','إيجار'],datasets:[{data:[{{ $salaries ?? 0 }},{{ $materials ?? 0 }},{{ $rent ?? 0 }}],backgroundColor:['#C8A27A','#E8D5C4','#6B5B4B']}]},options:{responsive:true,maintainAspectRatio:false}});
+</script>
+
+<script>
+function openExpensesModal() {
+    document.getElementById('expensesModal').style.display = 'flex';
+}
+function closeExpensesModal() {
+    document.getElementById('expensesModal').style.display = 'none';
+}
+</script>
+
+<div id="profitModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" style="display: none;">
+    <div class="rounded-2xl w-full max-w-md mx-4" style="background: rgba(255, 255, 255, 0.95);">
+        <div class="p-4" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+            <h3 style="color: #F3EDE6;">📈 تفاصيل الربح</h3>
+        </div>
+        <div class="p-6">
+            <p>💰 الإيرادات: <strong>{{ number_format($monthlyRevenue ?? 0) }} د.أ</strong></p>
+            <p>👩‍💼 الرواتب: <strong style="color:#ef4444;">- {{ number_format($salaries ?? 0) }} د.أ</strong></p>
+            <p>🧴 المواد: <strong style="color:#ef4444;">- {{ number_format($materials ?? 0) }} د.أ</strong></p>
+            <p>🏠 الإيجار: <strong style="color:#ef4444;">- {{ number_format($rent ?? 0) }} د.أ</strong></p>
+            <hr>
+            <p class="text-xl font-bold" style="color:{{ ($netProfit ?? 0) >= 0 ? '#10b981' : '#ef4444' }};">💵 صافي الربح: {{ number_format($netProfit ?? 0) }} د.أ</p>
+            <button onclick="closeProfitModal()" style="background:#eee;padding:12px;border-radius:12px;width:100%;margin-top:10px;">✕ إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openProfitModal() {
+    document.getElementById('profitModal').style.display = 'flex';
+}
+function closeProfitModal() {
+    document.getElementById('profitModal').style.display = 'none';
+}
 </script>
 @endsection

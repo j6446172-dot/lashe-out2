@@ -13,11 +13,32 @@ class LeaveController extends Controller
     {
         try {
             $data = $request->validate([
-                'leave_type' => 'required|string|in:annual,sick,emergency,unpaid,half_day,swap',
+                'leave_type' => 'required|string',
                 'duration_type' => 'required|in:days,hours',
                 'start_date' => 'required|date',
                 'reason' => 'nullable|string|max:500'
             ]);
+            
+            // ✅  فحص الرصيد
+            $staff = Auth::user();
+            $totalDays = 1;
+            
+            if ($request->duration_type == 'days' && $request->end_date) {
+                $start = \Carbon\Carbon::parse($request->start_date);
+                $end = \Carbon\Carbon::parse($request->end_date);
+                $totalDays = (int)($start->diffInDays($end)) + 1;
+            }
+            
+            if ($request->leave_type == 'سنوية' && ($staff->remaining_annual_leave ?? 0) < $totalDays) {
+                return response()->json(['success' => false, 'message' => 'رصيد إجازات سنوية غير كاف']);
+            }
+            if ($request->leave_type == 'مرضية' && ($staff->remaining_sick_leave ?? 0) < $totalDays) {
+                return response()->json(['success' => false, 'message' => 'رصيد إجازات مرضية غير كاف']);
+            }
+            if ($request->leave_type == 'طارئة' && ($staff->remaining_emergency_leave ?? 0) < $totalDays) {
+                return response()->json(['success' => false, 'message' => 'رصيد إجازات طارئة غير كاف']);
+            }
+            // ✅ 
             
             $leaveData = [
                 'staff_id' => Auth::id(),
@@ -65,7 +86,7 @@ class LeaveController extends Controller
             ->map(function($leave) {
                 return [
                     'id' => $leave->id,
-                    'leave_type' => $leave->leave_type_arabic,
+                    'leave_type' => $leave->leave_type,
                     'display_text' => $leave->display_text,
                     'status_name' => $leave->status_name,
                     'status_color' => $leave->status_color,
@@ -85,7 +106,7 @@ class LeaveController extends Controller
         
         return response()->json([
             'id' => $leave->id,
-            'leave_type' => $leave->leave_type_arabic,
+            'leave_type' => $leave->leave_type,
             'display_text' => $leave->display_text,
             'reason' => $leave->reason,
             'status_name' => $leave->status_name,

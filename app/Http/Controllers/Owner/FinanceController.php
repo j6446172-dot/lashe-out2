@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Booking;
 use App\Models\User;
 
+
 class FinanceController extends Controller
 {
     /**
@@ -25,9 +26,10 @@ class FinanceController extends Controller
             
         // 🧮 حساب المصاريف
         $staffCount = User::where('role', 'staff')->count();
-        $salaries = $staffCount * 350;
+        $owner = auth()->user();
+        $salaries = $owner->salaries ?? ($staffCount * 350);
         $materials = $monthlyRevenue * 0.06;
-        $rent = 60;
+        $rent = 200;
         $netProfit = $monthlyRevenue - $salaries - $materials - $rent;
         
         // 📊 بيانات الرسم البياني للإيرادات
@@ -123,6 +125,19 @@ class FinanceController extends Controller
         return redirect()->route('owner.finance')->with('success', 'تم الحفظ بنجاح ✅');
     }
     
+
+    public function updateExpenses(Request $request)
+{
+    $owner = auth()->user();
+    $owner->salaries = $request->salaries;
+    $owner->rent = $request->rent ?? 200;
+    $owner->materials_percentage = $request->materials_percentage ?? 6;
+    $owner->other_expenses = $request->other_expenses ?? 0;
+    $owner->save();
+    
+    return redirect()->route('owner.finance')->with('success', 'تم تحديث المصاريف ✅');
+}
+
     /**
      * 🔒 تحديث كلمة المرور المالية
      */

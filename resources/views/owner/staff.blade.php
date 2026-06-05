@@ -186,29 +186,29 @@
 <script>
     // دوال النوافذ
     function showDetail(id) {
-        document.getElementById('staffModal').classList.remove('hidden');
-        document.getElementById('staffModal').classList.add('flex');
-        document.getElementById('modalContent').innerHTML = '<p class="text-center" style="color:#7C8574;">جاري التحميل...</p>';
-        fetch(`/owner/staff-detail/${id}`).then(r=>r.json()).then(data=>{
-            document.getElementById('modalContent').innerHTML = `
-                <div class="mb-4"><strong style="color:#2B1E1A;">📊 إحصائيات</strong></div>
-                <div class="mb-4 p-4 rounded-xl" style="background:#f9f9f9;">
-                    <p>📅 حجوزات الشهر: ${data.total_bookings}</p>
-                    <p>❌ نسبة الإلغاء: ${data.cancel_rate}%</p>
-                    <p>⭐ التقييم: ${data.rating}</p>
-                    <p>💰 إيراداتها: ${data.revenue} د.أ</p>
-                </div>
-                <div class="mb-4"><strong style="color:#2B1E1A;">💼 التفاصيل المالية</strong></div>
-                <div class="p-4 rounded-xl" style="background:#f9f9f9;">
-                    <p>💰 الأساسي: ${data.base_salary} د.أ</p>
-                    <p style="color:#ef4444;">🏷️ الخصم: -${data.deduction} د.أ</p>
-                    <p style="color:#10b981;">🎁 المكافأة: +${data.bonus} د.أ</p>
-                    <hr class="my-2">
-                    <p style="font-weight:bold;">💵 الصافي: ${data.net_salary} د.أ</p>
-                </div>
-            `;
-        });
-    }
+    document.getElementById('staffModal').classList.remove('hidden');
+    document.getElementById('staffModal').classList.add('flex');
+    document.getElementById('modalContent').innerHTML = '<p class="text-center" style="color:#7C8574;">جاري التحميل...</p>';
+    fetch(`/owner/staff-detail/${id}?t=${Date.now()}`).then(r=>r.json()).then(data=>{
+        document.getElementById('modalContent').innerHTML = `
+            <div class="mb-4"><strong style="color:#2B1E1A;">📊 إحصائيات</strong></div>
+            <div class="mb-4 p-4 rounded-xl" style="background:#f9f9f9;">
+                <p>📅 حجوزات الشهر: ${data.total_bookings}</p>
+                <p>❌ نسبة الإلغاء: ${data.cancel_rate}%</p>
+                <p>⭐ التقييم: ${data.rating}</p>
+                <p>💰 إيراداتها: ${data.revenue} د.أ</p>
+            </div>
+            <div class="mb-4"><strong style="color:#2B1E1A;">💼 التفاصيل المالية</strong></div>
+            <div class="p-4 rounded-xl" style="background:#f9f9f9;">
+                <p>💰 الأساسي: ${data.base_salary} د.أ</p>
+                <p style="color:#ef4444;">🏷️ الخصم: -${data.deduction} د.أ</p>
+                <p style="color:#10b981;">🎁 المكافأة: +${data.bonus} د.أ</p>
+                <hr class="my-2">
+                <p style="font-weight:bold;">💵 الصافي: ${data.net_salary} د.أ</p>
+            </div>
+            
+    });
+}
     
     function closeModal(){ 
         document.getElementById('staffModal').classList.add('hidden'); 

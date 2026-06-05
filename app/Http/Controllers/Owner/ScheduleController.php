@@ -28,7 +28,7 @@ class ScheduleController extends Controller
         $start = $request->start[$index] ?? '10:00';
         $end = $request->end[$index] ?? '18:00';
         
-        // دوام الصالون
+        // تحديث دوام الصالون
         \DB::table('salon_schedule')->updateOrInsert(
             ['day_of_week' => $index],
             [
@@ -38,6 +38,28 @@ class ScheduleController extends Controller
                 'updated_at' => now()
             ]
         );
+        
+        // تحديث دوام الموظفات
+        if ($status === 'closed') {
+            \DB::table('staff_schedule')
+                ->where('day_of_week', $index)
+                ->update([
+                    'status' => 'dayoff',
+                    'start_time' => null,
+                    'end_time' => null,
+                    'updated_at' => now()
+                ]);
+        } else {
+            \DB::table('staff_schedule')
+                ->where('day_of_week', $index)
+                ->whereNotIn('status', ['سنوية', 'مرضية', 'طارئة', 'عرضية', 'بدون راتب', 'نصف يوم', 'تبديل وردية'])
+                ->update([
+                    'status' => 'active',
+                    'start_time' => $start,
+                    'end_time' => $end,
+                    'updated_at' => now()
+                ]);
+        }
     }
     
     return back()->with('success', 'تم حفظ دوام الصالون ✅');
@@ -47,14 +69,14 @@ class ScheduleController extends Controller
      * 💾 حفظ دوام موظفة محدد
      */
     public function saveStaffSchedule(Request $request)
-    {
-        DB::table('staff_schedule')->updateOrInsert(
-            ['staff_id' => $request->staff_id, 'day_of_week' => $request->day_of_week],
-            ['status' => $request->status, 'start_time' => $request->start_time, 
-             'end_time' => $request->end_time, 'updated_at' => now()]
-        );
-        return response()->json(['success' => true]);
-    }
+{
+    \DB::table('staff_schedule')->updateOrInsert(
+        ['staff_id' => $request->staff_id, 'day_of_week' => $request->day_of_week],
+        ['status' => $request->status, 'start_time' => $request->start_time, 
+         'end_time' => $request->end_time, 'updated_at' => now()]
+    );
+    return response()->json(['success' => true]);
+}
 
     /**
      * 📅 عرض دوام موظفة محدد

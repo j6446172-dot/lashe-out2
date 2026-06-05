@@ -205,6 +205,7 @@ use App\Http\Controllers\Owner\ReviewoController;
 use App\Http\Controllers\Owner\ScheduleController;
 
 Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
+    Route::post('/finance/update-expenses', [FinanceController::class, 'updateExpenses'])->name('finance.update-expenses');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [BookingoController::class, 'bookings'])->name('bookings');
     Route::get('/booking-detail/{id}', [BookingoController::class, 'bookingDetail'])->name('booking.detail');
@@ -228,6 +229,7 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
     Route::get('/leaves/approve/{id}', [DashboardController::class, 'approveLeave'])->name('leaves.approve');
     Route::get('/leaves/{id}/details', [DashboardController::class, 'leaveDetails'])->name('leaves.details');
     Route::get('/leaves/reject/{id}', [DashboardController::class, 'rejectLeave'])->name('leaves.reject');
+
     
     // ========== شات المالك مع الموظفين ==========
     Route::get('/chat/staff/{staffId}/messages', [App\Http\Controllers\Owner\ChatController::class, 'getStaffMessages'])->name('chat.staff.messages');
