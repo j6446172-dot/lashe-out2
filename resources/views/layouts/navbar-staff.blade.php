@@ -87,11 +87,7 @@
                                     <i class="fas fa-arrow-left text-xs mr-auto text-gray-400"></i>
                                 </button>
                                 
-                                <button onclick="showSalaryHistory()" class="w-full p-3 text-right flex items-center gap-2 hover:bg-gray-50 transition" style="color: #2B1E1A;">
-                                    <i class="fas fa-chart-line text-[#B08D57] w-5"></i>
-                                    <span>💰 سجل الرواتب الشهرية</span>
-                                    <i class="fas fa-arrow-left text-xs mr-auto text-gray-400"></i>
-                                </button>
+                                {{-- تم إزالة زر سجل الرواتب --}}
                             </div>
                         </div>
 
@@ -148,7 +144,7 @@
                     
                     <button onclick="openLeaveRequest()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">📅 طلب إجازة</button>
                     <button onclick="showLeaveHistory()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">📋 سجل الإجازات</button>
-                    <button onclick="showSalaryHistory()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">💰 سجل الرواتب</button>
+                    {{-- تم إزالة زر سجل الرواتب من الموبايل --}}
                     <button onclick="openChatWindow()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">💬 شات مع المالك</button>
                     
                     <a href="{{ route('profile.edit') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">ملفي الشخصي</a>
@@ -181,92 +177,70 @@
             </div>
         </div>
 
-     {{-- نافذة طلب إجازة --}}
-<div id="leaveModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-    <div class="rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3);">
-        <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-white"></i><span class="font-bold text-white">طلب إجازة</span></div>
-                <button onclick="closeLeaveModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+        {{-- نافذة طلب إجازة --}}
+        <div id="leaveModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
+            <div class="rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3);">
+                <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-white"></i><span class="font-bold text-white">طلب إجازة</span></div>
+                        <button onclick="closeLeaveModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                
+                <form id="leaveRequestForm" class="p-4">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نوع الإجازة</label>
+                            <select name="leave_type" required class="w-full rounded-xl px-4 py-2 border focus:outline-none focus:border-[#B08D57]" style="border-color: rgba(176, 141, 87, 0.3);">
+                                <option value="">اختر نوع الإجازة</option>
+                                <option value="annual">🌴 إجازة سنوية</option>
+                                <option value="sick">🤒 إجازة مرضية</option>
+                                <option value="emergency">⚡ إجازة طارئة</option>
+                                <option value="unpaid">💰 إجازة بدون راتب</option>
+                                <option value="half_day">🌓 نصف يوم</option>
+                                <option value="swap">🔄 تبديل وردية</option>
+                            </select>
+                        </div>
+                        
+                        {{-- تم إخفاء خيار نظام الإجازة وجعل النظام أيام فقط بشكل تلقائي --}}
+                        <input type="hidden" name="duration_type" value="days">
+                        
+                        <div id="daysSection">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من تاريخ</label><input type="date" name="start_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
+                                <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى تاريخ</label><input type="date" name="end_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);"></div>
+                            </div>
+                        </div>
+                        
+                        {{-- تم إخفاء قسم الساعات تماماً --}}
+                        <div id="hoursSection" style="display:none;"></div>
+                        
+                        <div><textarea name="reason" rows="2" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="السبب (اختياري)"></textarea></div>
+                        
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="closeLeaveModal()" class="flex-1 py-2 rounded-xl transition" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">إلغاء</button>
+                            <button type="submit" class="flex-1 py-2 rounded-xl text-white transition hover:opacity-90" style="background: #B08D57;">إرسال الطلب</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-        
-        <form id="leaveRequestForm" class="p-4">
-            @csrf
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نوع الإجازة</label>
-                    <select name="leave_type" required class="w-full rounded-xl px-4 py-2 border focus:outline-none focus:border-[#B08D57]" style="border-color: rgba(176, 141, 87, 0.3);">
-                        <option value="">اختر نوع الإجازة</option>
-                        <option value="annual">🌴 إجازة سنوية</option>
-                        <option value="sick">🤒 إجازة مرضية</option>
-                        <option value="emergency">⚡ إجازة طارئة</option>
-                        <option value="unpaid">💰 إجازة بدون راتب</option>
-                        <option value="half_day">🌓 نصف يوم</option>
-                        <option value="swap">🔄 تبديل وردية</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">نظام الإجازة</label>
-                    <div class="flex gap-3">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="duration_type" value="days" checked onclick="toggleDurationType()"> <span>📅 أيام</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="duration_type" value="hours" onclick="toggleDurationType()"> <span>⏰ ساعات</span></label>
-                    </div>
-                </div>
-                
-                <div id="daysSection">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من تاريخ</label><input type="date" name="start_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
-                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى تاريخ</label><input type="date" name="end_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);"></div>
-                    </div>
-                </div>
-                
-                <div id="hoursSection" style="display:none;">
-                    <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">التاريخ</label><input type="date" name="hours_date" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" min="{{ date('Y-m-d') }}"></div>
-                    <div class="grid grid-cols-2 gap-3 mt-2">
-                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">من الساعة</label><input type="time" name="start_time" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" step="60"></div>
-                        <div><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">إلى الساعة</label><input type="time" name="end_time" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" step="60"></div>
-                    </div>
-                    <div class="mt-2"><label class="block text-sm font-bold mb-1" style="color: #2B1E1A;">عدد الساعات</label><input type="number" name="hours" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="مثال: 4" min="1" max="12"></div>
-                </div>
-                
-                <div><textarea name="reason" rows="2" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="السبب (اختياري)"></textarea></div>
-                
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeLeaveModal()" class="flex-1 py-2 rounded-xl transition" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">إلغاء</button>
-                    <button type="submit" class="flex-1 py-2 rounded-xl text-white transition hover:opacity-90" style="background: #B08D57;">إرسال الطلب</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
-{{-- نافذة سجل الإجازات --}}
-<div id="leaveHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-    <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
-        <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2"><i class="fas fa-history text-white"></i><span class="font-bold text-white">سجل الإجازات السابقة</span></div>
-                <button onclick="closeLeaveHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+        {{-- نافذة سجل الإجازات --}}
+        <div id="leaveHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
+            <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
+                <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2"><i class="fas fa-history text-white"></i><span class="font-bold text-white">سجل الإجازات السابقة</span></div>
+                        <button onclick="closeLeaveHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div id="leaveHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
             </div>
         </div>
-        <div id="leaveHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
-    </div>
-</div>
 
-{{-- نافذة سجل الرواتب --}}
-<div id="salaryHistoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-    <div class="rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(176, 141, 87, 0.3); max-height: 80vh;">
-        <div class="px-4 py-3" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2"><i class="fas fa-chart-line text-white"></i><span class="font-bold text-white">سجل الرواتب الشهرية</span></div>
-                <button onclick="closeSalaryHistoryModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-        <div id="salaryHistoryContent" class="p-4 overflow-y-auto" style="max-height: calc(80vh - 60px);"><div class="text-center py-8 text-gray-500">جاري التحميل...</div></div>
-    </div>
-</div>
+        {{-- تم إزالة نافذة سجل الرواتب بالكامل --}}
 
         <style>
             [x-cloak] { display: none !important; }
@@ -375,25 +349,22 @@
                 } 
             });
             
-            // ========== دوال الإجازة ==========
+            // ========== دوال الإجازة (تم التعديل) ==========
             function toggleDurationType() {
-                const daysSec = document.getElementById('daysSection'), hoursSec = document.getElementById('hoursSection');
-                const dur = document.querySelector('input[name="duration_type"]:checked');
-                if(!dur) return;
-                if(dur.value === 'days') {
-                    daysSec.style.display = 'block';
-                    hoursSec.style.display = 'none';
-                } else {
-                    daysSec.style.display = 'none';
-                    hoursSec.style.display = 'block';
-                }
+                // تم تعطيل هذه الدالة لأننا نستخدم فقط نظام الأيام
+                return;
             }
             
             function openLeaveRequest() { 
                 document.getElementById('leaveRequestForm')?.reset(); 
-                const r = document.querySelector('input[name="duration_type"][value="days"]'); 
-                if(r) r.checked = true; 
-                toggleDurationType(); 
+                // التأكد من أن القيمة hidden هي days
+                const hiddenInput = document.querySelector('input[name="duration_type"]');
+                if(hiddenInput) hiddenInput.value = 'days';
+                // إظهار قسم الأيام وإخفاء قسم الساعات
+                const daysSec = document.getElementById('daysSection');
+                const hoursSec = document.getElementById('hoursSection');
+                if(daysSec) daysSec.style.display = 'block';
+                if(hoursSec) hoursSec.style.display = 'none';
                 document.getElementById('leaveModal').classList.remove('hidden'); 
                 document.getElementById('leaveModal').classList.add('flex'); 
             }
@@ -406,7 +377,8 @@
             document.getElementById('leaveRequestForm')?.addEventListener('submit', async(e) => { 
                 e.preventDefault(); 
                 const form = e.target; 
-                const durationType = document.querySelector('input[name="duration_type"]:checked').value; 
+                // استخدام days بشكل تلقائي
+                const durationType = 'days'; 
                 
                 let formData = { 
                     leave_type: form.querySelector('select[name="leave_type"]').value, 
@@ -414,16 +386,9 @@
                     reason: form.querySelector('textarea[name="reason"]').value || '' 
                 }; 
                 
-                if(durationType === 'days') { 
-                    formData.start_date = form.querySelector('input[name="start_date"]').value; 
-                    formData.end_date = form.querySelector('input[name="end_date"]').value; 
-                } else { 
-                    formData.start_date = form.querySelector('input[name="hours_date"]').value; 
-                    formData.end_date = formData.start_date; 
-                    formData.start_time = form.querySelector('input[name="start_time"]').value; 
-                    formData.end_time = form.querySelector('input[name="end_time"]').value; 
-                    formData.hours = form.querySelector('input[name="hours"]').value; 
-                } 
+                // فقط نأخذ بيانات الأيام
+                formData.start_date = form.querySelector('input[name="start_date"]').value; 
+                formData.end_date = form.querySelector('input[name="end_date"]').value; 
                 
                 if(!formData.leave_type) { 
                     alert('الرجاء اختيار نوع الإجازة'); 
@@ -433,12 +398,8 @@
                     alert('الرجاء اختيار التاريخ'); 
                     return; 
                 } 
-                if(durationType === 'days' && !formData.end_date) { 
+                if(!formData.end_date) { 
                     alert('الرجاء اختيار تاريخ الانتهاء'); 
-                    return; 
-                } 
-                if(durationType === 'hours' && (!formData.start_time || !formData.end_time)) { 
-                    alert('الرجاء اختيار وقت البداية والنهاية'); 
                     return; 
                 } 
                 
@@ -499,11 +460,11 @@
                                         <th class="p-2">التفاصيل</th>
                                         <th class="p-2">الحالة</th>
                                         <th class="p-2">تاريخ الطلب</th>
-                                     </tr>
+                                       </tr>
                                 </thead>
                                 <tbody>
                                     ${leaves.map(l => `
-                                        <tr style="border-bottom:1px solid #eee; cursor:pointer;"
+                                        <tr style="border-bottom:1px solid #eee;cursor:pointer;"
                                             onclick="showLeaveDetails(${l.id})">
                                             <td class="p-2">${l.leave_type_arabic ?? l.leave_type}</td>
                                             <td class="p-2" style="color:#B08D57;font-size:13px;">${l.display_text}</td>
@@ -544,43 +505,7 @@
                 m.classList.remove('flex'); 
             }
             
-            // ========== دوال سجل الرواتب ==========
-            async function showSalaryHistory() { 
-                const modal = document.getElementById('salaryHistoryModal'); 
-                modal.classList.remove('hidden'); 
-                modal.classList.add('flex'); 
-                const content = document.getElementById('salaryHistoryContent'); 
-                content.innerHTML = '<div class="text-center py-8 text-gray-500">جاري التحميل...</div>'; 
-                try { 
-                    const res = await fetch('{{ route("staff.salary.history") }}'); 
-                    const salaries = await res.json(); 
-                    if(salaries.length === 0) { 
-                        content.innerHTML = '<div class="text-center py-8 text-gray-500">لا توجد سجلات رواتب سابقة</div>'; 
-                        return; 
-                    } 
-                    content.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-right"><thead><tr style="border-bottom:2px solid #B08D57;"><th class="p-2">الشهر</th><th class="p-2">السنة</th><th class="p-2">الأساسي</th><th class="p-2">الخصم</th><th class="p-2">المكافأة</th><th class="p-2">الصافي</th><th class="p-2">الحالة</th></tr></thead><tbody>${salaries.map(s => `<tr style="border-bottom:1px solid #eee;cursor:pointer;" onclick="showSalaryDetails(${s.year},${s.month})"><td class="p-2">${s.month_name}</td><td class="p-2">${s.year}</td><td class="p-2">${s.base_salary} د.أ</td><td class="p-2 text-red-600">-${s.deduction} د.أ</td><td class="p-2 text-green-600">+${s.bonus} د.أ</td><td class="p-2 font-bold" style="color:#B08D57;">${s.net_salary} د.أ</td><td class="p-2">${s.is_paid ? '<span class="text-green-600">✓ تم الدفع</span>' : '<span class="text-yellow-600">⏳ قيد الانتظار</span>'}</span></td></tr>`).join('')}</tbody></div><div class="mt-3 text-xs text-gray-400 text-center">💡 اضغط على أي صف لرؤية التفاصيل</div>`; 
-                } catch(e) { 
-                    console.error(e); 
-                    content.innerHTML = '<div class="text-center py-8 text-red-500">حدث خطأ في التحميل</div>'; 
-                } 
-            }
-            
-            function closeSalaryHistoryModal() { 
-                const m = document.getElementById('salaryHistoryModal'); 
-                m.classList.add('hidden'); 
-                m.classList.remove('flex'); 
-            }
-            
-            async function showSalaryDetails(year, month) { 
-                try { 
-                    const r = await fetch(`/staff/salary/${year}/${month}`); 
-                    const s = await r.json(); 
-                    alert(`📊 تفاصيل الراتب - ${s.month_name} ${s.year}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n💰 الراتب الأساسي: ${s.base_salary} د.أ\n🏷️ الخصم: - ${s.deduction} د.أ\n🎁 المكافأة: + ${s.bonus} د.أ\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n💵 الراتب الصافي: ${s.net_salary} د.أ\n📝 ملاحظات: ${s.notes || 'لا توجد ملاحظات'}\n✅ حالة الدفع: ${s.is_paid ? 'تم الدفع بتاريخ ' + new Date(s.paid_at).toLocaleDateString('ar') : 'لم يتم الدفع بعد'}`); 
-                } catch(e) { 
-                    console.error(e); 
-                    alert('حدث خطأ'); 
-                } 
-            }
+            // تم إزالة دوال سجل الرواتب بالكامل (showSalaryHistory, closeSalaryHistoryModal, showSalaryDetails)
             
             // ========== دوال مساعدة ==========
             function escapeHtml(t) { 
@@ -630,12 +555,8 @@
             document.getElementById('leaveHistoryModal')?.addEventListener('click', function(e) { 
                 if(e.target === this) closeLeaveHistoryModal(); 
             });
-            document.getElementById('salaryHistoryModal')?.addEventListener('click', function(e) { 
-                if(e.target === this) closeSalaryHistoryModal(); 
-            });
-        </script>
-
-        <script>
+            // تم إزالة Event Listener الخاص بـ salaryHistoryModal
+            
             // Mobile menu toggle for staff
             const mobileButton = document.getElementById('mobile-menu-button');
             if (mobileButton) {

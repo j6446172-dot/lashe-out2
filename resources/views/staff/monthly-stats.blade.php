@@ -39,7 +39,7 @@
         </div>
 
         {{-- Stats Cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <div class="rounded-xl p-5 text-center transition-all hover:scale-105" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
                 <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(59, 130, 246, 0.2);">
                     <i class="fas fa-calendar-check text-2xl" style="color: #3b82f6;"></i>
@@ -69,17 +69,6 @@
                 <p class="text-gray-600 text-sm">❌ الملغية</p>
                 <p class="text-3xl font-bold mt-1" id="cancelledBookings" style="color: #ef4444;">0</p>
                 <p class="text-xs mt-1" id="cancelledChange">
-                    <i class="fas fa-chart-line"></i> <span class="text-red-600">+0%</span>
-                </p>
-            </div>
-
-            <div class="rounded-xl p-5 text-center transition-all hover:scale-105" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(245, 158, 11, 0.2);">
-                    <i class="fas fa-user-slash text-2xl" style="color: #f59e0b;"></i>
-                </div>
-                <p class="text-gray-600 text-sm">🚫 عدم حضور</p>
-                <p class="text-3xl font-bold mt-1" id="noshowBookings" style="color: #f59e0b;">0</p>
-                <p class="text-xs mt-1" id="noshowChange">
                     <i class="fas fa-chart-line"></i> <span class="text-red-600">+0%</span>
                 </p>
             </div>
@@ -115,37 +104,7 @@
             </div>
         </div>
 
-        {{-- No-Show Rate Card --}}
-        <div class="rounded-xl p-6" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);">
-            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <h3 class="text-lg font-bold" style="color: #2B1E1A;">📊 نسب الحضور وعدم الحضور</h3>
-                <div class="flex gap-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm">نسبة الحضور</span>
-                        <span class="font-bold" id="attendanceRate">0%</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span class="text-sm">نسبة عدم الحضور</span>
-                        <span class="font-bold" id="noshowRate">0%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-4">
-                <div id="attendanceBar" class="h-4 rounded-full transition-all" style="width: 0%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
-            </div>
-            <div class="mt-6 grid grid-cols-2 gap-4 text-center">
-                <div class="p-3 rounded-lg" style="background: rgba(16, 185, 129, 0.1);">
-                    <p class="text-2xl font-bold text-green-600" id="attendanceCount">0</p>
-                    <p class="text-xs text-gray-500">حضور (مكتمل + مؤكد)</p>
-                </div>
-                <div class="p-3 rounded-lg" style="background: rgba(239, 68, 68, 0.1);">
-                    <p class="text-2xl font-bold text-red-600" id="noshowCount">0</p>
-                    <p class="text-xs text-gray-500">غياب (ملغي + عدم حضور)</p>
-                </div>
-            </div>
-        </div>
+        {{-- تم إزالة قسم نسب الحضور وعدم الحضور بالكامل --}}
 
     </div>
 </div>
@@ -183,26 +142,19 @@
             document.getElementById('totalBookings').innerText = data.total || 0;
             document.getElementById('completedBookings').innerText = data.completed || 0;
             document.getElementById('cancelledBookings').innerText = data.cancelled || 0;
-            document.getElementById('noshowBookings').innerText = data.noshow || 0;
+            // تم إزالة noshowBookings
             
             // Update percentages
             updatePercentage('totalChange', data.totalChange);
             updatePercentage('completedChange', data.completedChange);
             updatePercentage('cancelledChange', data.cancelledChange);
-            updatePercentage('noshowChange', data.noshowChange);
+            // تم إزالة noshowChange
             
-            // Update attendance rates
-            const attendanceRate = data.attendanceRate || 0;
-            const noshowRate = data.noshowRate || 0;
-            document.getElementById('attendanceRate').innerText = attendanceRate + '%';
-            document.getElementById('noshowRate').innerText = noshowRate + '%';
-            document.getElementById('attendanceBar').style.width = attendanceRate + '%';
-            document.getElementById('attendanceCount').innerText = data.attendanceCount || 0;
-            document.getElementById('noshowCount').innerText = data.noshowCount || 0;
+            // تم إزالة قسم attendance rates بالكامل
             
             // Update charts
             updateDailyChart(data.dailyData);
-            updatePieChart(data.completed, data.cancelled, data.noshow, data.pending);
+            updatePieChart(data.completed, data.cancelled, data.pending);
             updateServiceChart(data.serviceData);
             updateWeeklyChart(data.weeklyData);
             
@@ -248,16 +200,16 @@
         });
     }
 
-    function updatePieChart(completed, cancelled, noshow, pending) {
+    function updatePieChart(completed, cancelled, pending) {
         if (pieChart) pieChart.destroy();
         const ctx = document.getElementById('statusPieChart').getContext('2d');
         pieChart = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: ['✅ مكتمل', '❌ ملغي', '🚫 عدم حضور', '⏳ قيد الانتظار'],
+                labels: ['✅ مكتمل', '❌ ملغي', '⏳ قيد الانتظار'],
                 datasets: [{
-                    data: [completed, cancelled, noshow, pending],
-                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#6b7280'],
+                    data: [completed, cancelled, pending],
+                    backgroundColor: ['#10b981', '#ef4444', '#6b7280'],
                     borderWidth: 0
                 }]
             },
