@@ -22,7 +22,7 @@ class LeaveRequest extends Model
         'status',
         'admin_notes',
         'reviewed_at',
-        'notification_read',
+        //'notification_read',
     ];
     
     protected $casts = [
@@ -70,20 +70,20 @@ class LeaveRequest extends Model
     
     
     // في app/Models/LeaveRequest.php
-
-protected static function booted()
-{
-    static::updated(function ($leaveRequest) {
+//
+//protected static function booted()
+//{
+    //static::updated(function ($leaveRequest) {
         // إذا تغيرت الحالة إلى approved أو rejected
-        if ($leaveRequest->isDirty('status') && 
-            in_array($leaveRequest->status, ['approved', 'rejected'])) {
+        //if ($leaveRequest->isDirty('status') && 
+           // in_array($leaveRequest->status, ['approved', 'rejected'])) {
             
             // اجعل الإشعار غير مقروء (حتى لو كان قد قرأ من قبل)
-            $leaveRequest->notification_read = false;
-            $leaveRequest->saveQuietly(); // منع التكرار اللانهائي
-        }
-    });
-}
+            //$leaveRequest->notification_read = false;
+            //$leaveRequest->saveQuietly(); // منع التكرار اللانهائي
+       // }
+  //  });
+//}
 
 
 

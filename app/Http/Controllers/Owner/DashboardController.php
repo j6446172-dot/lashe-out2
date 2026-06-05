@@ -118,9 +118,8 @@ class DashboardController extends Controller
                 ->update(['remaining_emergency_leave' => DB::raw("remaining_emergency_leave - {$totalDays}")]);
         }
         
-        return redirect()->route('owner.staff')->with('success', 'تمت الموافقة ✅');
+        return redirect()->route('owner.schedule')->with('success', 'تمت الموافقة ✅');
     }
-    
     public function rejectLeave(int $id)
     {
         LeaveRequest::find($id)->update([
