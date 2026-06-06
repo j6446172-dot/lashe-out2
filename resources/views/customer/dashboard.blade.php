@@ -175,7 +175,7 @@
                     $user = auth()->user();
                     $completedCount = $user->bookings()->where('status', 'completed')->count();
                     $totalActiveCount = $user->bookings()->whereIn('status', ['confirmed', 'completed'])->count();
-                    $loyaltyPoints = $user->loyalty_points ?? 0;
+                    $loyaltyPoints = $user->points;
                 @endphp
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">

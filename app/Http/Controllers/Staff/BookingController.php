@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -103,6 +104,31 @@ class BookingController extends Controller
         
         $booking->status = $validated['status'];
         $booking->save();
+        
+        if ($validated['status'] == 'completed') {
+
+    $userId = $booking->user_id;
+
+    $check = \DB::table('loyalty_points')
+        ->where('user_id', $userId)
+        ->first();
+
+    if ($check) {
+
+        \DB::table('loyalty_points')
+            ->where('user_id', $userId)
+            ->increment('points', 10);
+
+    } else {
+
+        \DB::table('loyalty_points')->insert([
+            'user_id' => $userId,
+            'points' => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+}
         
         $message = $validated['status'] == 'completed' 
             ? '✨ تم إكمال الخدمة بنجاح!' 
