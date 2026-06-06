@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('booking_date');
             $table->time('booking_time');
             $table->string('location');
-            $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', [ 'confirmed', 'completed', 'cancelled'])->default('pending');
             $table->boolean('in_queue')->default(false);
             $table->integer('queue_position')->nullable();
             $table->timestamps();

@@ -87,7 +87,7 @@
                                     <i class="fas fa-arrow-left text-xs mr-auto text-gray-400"></i>
                                 </button>
                                 
-                                {{-- تم إزالة زر سجل الرواتب --}}
+                                
                             </div>
                         </div>
 
@@ -144,7 +144,7 @@
                     
                     <button onclick="openLeaveRequest()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">📅 طلب إجازة</button>
                     <button onclick="showLeaveHistory()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">📋 سجل الإجازات</button>
-                    {{-- تم إزالة زر سجل الرواتب من الموبايل --}}
+                 
                     <button onclick="openChatWindow()" class="font-bold py-2 transition hover:opacity-70 text-right" style="color: #B08D57;">💬 شات مع المالك</button>
                     
                     <a href="{{ route('profile.edit') }}" class="font-bold py-2 transition hover:opacity-70" style="color: #7C8574;">ملفي الشخصي</a>
@@ -203,7 +203,7 @@
                             </select>
                         </div>
                         
-                        {{-- تم إخفاء خيار نظام الإجازة وجعل النظام أيام فقط بشكل تلقائي --}}
+                      
                         <input type="hidden" name="duration_type" value="days">
                         
                         <div id="daysSection">
@@ -213,7 +213,7 @@
                             </div>
                         </div>
                         
-                        {{-- تم إخفاء قسم الساعات تماماً --}}
+                 
                         <div id="hoursSection" style="display:none;"></div>
                         
                         <div><textarea name="reason" rows="2" class="w-full rounded-xl px-4 py-2 border" style="border-color: rgba(176, 141, 87, 0.3);" placeholder="السبب (اختياري)"></textarea></div>
@@ -240,7 +240,7 @@
             </div>
         </div>
 
-        {{-- تم إزالة نافذة سجل الرواتب بالكامل --}}
+    
 
         <style>
             [x-cloak] { display: none !important; }
