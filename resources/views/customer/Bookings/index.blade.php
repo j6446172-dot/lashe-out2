@@ -73,7 +73,7 @@
                                 
                                 $serviceName = [
                                     'classic' => 'كلاسيك',
-                                    'hybrid' => 'هايبرد',
+                                    
                                     'volume' => 'فولوم',
                                     'removal' => 'إزالة رموش'
                                 ][$booking->service_type] ?? $booking->service_type;
@@ -144,73 +144,93 @@
                 </div>
 
                 {{-- ===== الحجوزات السابقة ===== --}}
-                <div id="tab-past" class="tab-content hidden">
-                    @php
-                        $pastBookings = auth()->user()->bookings()
-                            ->where('status', 'confirmed')
-                            ->where('booking_date', '<', today())
-                            ->orderBy('booking_date', 'desc')
-                            ->get();
-                    @endphp
+<div id="tab-past" class="tab-content hidden">
+    @php
+        $pastBookings = auth()->user()->bookings()
+            ->where(function($query) {
+                // الحجوزات المكتملة
+                $query->where('status', 'completed')
+                      // أو الحجوزات المؤكدة اللي تاريخها مضى
+                      ->orWhere(function($q) {
+                          $q->where('status', 'confirmed')
+                            ->where('booking_date', '<', today());
+                      });
+            })
+            ->orderBy('booking_date', 'desc')
+            ->get();
+    @endphp
 
-                    @if($pastBookings->count() > 0)
-                        @foreach($pastBookings as $booking)
-                            @php
-                                $serviceName = [
-                                    'classic' => 'كلاسيك',
-                                    'hybrid' => 'هايبرد',
-                                    'volume' => 'فولوم',
-                                    'removal' => 'إزالة رموش'
-                                ][$booking->service_type] ?? $booking->service_type;
-                                $daysPassed = \Carbon\Carbon::parse($booking->booking_date)->diffInDays(today());
-                            @endphp
-                            <div class="rounded-xl p-4 mb-4"
-                                 style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                                
-                                <div class="flex justify-between items-center pb-3 border-b" style="border-color: rgba(176, 141, 87, 0.1);">
-                                    <div class="px-3 py-1 rounded-full text-xs font-bold"
-                                         style="background: rgba(59, 130, 246, 0.1); color: #1e40af;">
-                                        <i class="fas fa-check-double ml-1"></i> مكتمل
-                                    </div>
-                                    <div class="text-xs" style="color: #7C8574;">منذ {{ $daysPassed }} يوم</div>
-                                </div>
-                                
-                                <div class="flex items-center justify-between mt-3">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                                             style="background: rgba(124, 133, 116, 0.1);">
-                                            <i class="fas fa-check text-xl" style="color: #7C8574;"></i>
-                                        </div>
-                                        <div>
-                                            <p class="font-bold" style="color: #2B1E1A;">{{ $serviceName }}</p>
-                                            @if($booking->service_type != 'removal')
-                                                <p class="text-sm" style="color: #7C8574;">{{ $booking->staff->name ?? 'غير محدد' }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="text-left">
-                                        <p style="color: #2B1E1A;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</p>
-                                        <p class="text-sm" style="color: #7C8574;">{{ \Carbon\Carbon::parse($booking->booking_time)->format('g:i A') }}</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-3 pt-3 border-t" style="border-color: rgba(176, 141, 87, 0.1);">
-                                    <a href="{{ route('customer.bookings.show', $booking->id) }}" 
-                                       class="px-4 py-2 rounded-lg text-sm font-medium transition"
-                                       style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
-                                        <i class="fas fa-eye ml-1"></i> عرض التفاصيل
-                                    </a>
-                                </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="rounded-xl p-10 text-center"
-                             style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                            <i class="fas fa-history text-5xl mb-3" style="color: rgba(176, 141, 87, 0.3);"></i>
-                            <p style="color: #7C8574;">لا توجد حجوزات سابقة</p>
+    @if($pastBookings->count() > 0)
+        @foreach($pastBookings as $booking)
+            @php
+                $serviceName = [
+                    'classic' => 'كلاسيك',
+                    
+                    'volume' => 'فولوم',
+                    'removal' => 'إزالة رموش'
+                ][$booking->service_type] ?? $booking->service_type;
+                
+                // حساب الأيام
+                $daysPassed = \Carbon\Carbon::parse($booking->booking_date)->diffInDays(today());
+                $isCompleted = $booking->status == 'completed';
+            @endphp
+            <div class="rounded-xl p-4 mb-4"
+                 style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
+                
+                <div class="flex justify-between items-center pb-3 border-b" style="border-color: rgba(176, 141, 87, 0.1);">
+                    <div class="px-3 py-1 rounded-full text-xs font-bold"
+                         style="background: {{ $isCompleted ? 'rgba(16, 185, 129, 0.15); color: #065f46;' : 'rgba(59, 130, 246, 0.1); color: #1e40af;' }}">
+                        <i class="fas {{ $isCompleted ? 'fa-check-circle' : 'fa-check-double' }} ml-1"></i> 
+                        {{ $isCompleted ? 'مكتمل' : 'منتهي' }}
+                    </div>
+                    <div class="text-xs" style="color: #7C8574;">منذ {{ $daysPassed }} يوم</div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center"
+                             style="background: rgba(124, 133, 116, 0.1);">
+                            <i class="fas fa-check text-xl" style="color: #7C8574;"></i>
                         </div>
+                        <div>
+                            <p class="font-bold" style="color: #2B1E1A;">{{ $serviceName }}</p>
+                            @if($booking->service_type != 'removal')
+                                <p class="text-sm" style="color: #7C8574;">{{ $booking->staff->name ?? 'غير محدد' }}</p>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <p style="color: #2B1E1A;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</p>
+                        <p class="text-sm" style="color: #7C8574;">{{ \Carbon\Carbon::parse($booking->booking_time)->format('g:i A') }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 mt-3 pt-3 border-t" style="border-color: rgba(176, 141, 87, 0.1);">
+                    <a href="{{ route('customer.bookings.show', $booking->id) }}" 
+                       class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                       style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+                        <i class="fas fa-eye ml-1"></i> عرض التفاصيل
+                    </a>
+                    
+                    {{-- إذا كان الحجز مكتمل وما فيه تقييم، يظهر زر التقييم --}}
+                    @if($isCompleted && !$booking->review)
+                        <a href="{{ route('customer.reviews.create', $booking->id) }}" 
+                           class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                           style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+                            <i class="fas fa-star ml-1"></i> تقييم
+                        </a>
                     @endif
                 </div>
+            </div>
+        @endforeach
+    @else
+        <div class="rounded-xl p-10 text-center"
+             style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
+            <i class="fas fa-history text-5xl mb-3" style="color: rgba(176, 141, 87, 0.3);"></i>
+            <p style="color: #7C8574;">لا توجد حجوزات سابقة</p>
+        </div>
+    @endif
+</div>
 
                 {{-- ===== الحجوزات الملغاة ===== --}}
                 <div id="tab-cancelled" class="tab-content hidden">
@@ -226,7 +246,7 @@
                             @php
                                 $serviceName = [
                                     'classic' => 'كلاسيك',
-                                    'hybrid' => 'هايبرد',
+                                    
                                     'volume' => 'فولوم',
                                     'removal' => 'إزالة رموش'
                                 ][$booking->service_type] ?? $booking->service_type;

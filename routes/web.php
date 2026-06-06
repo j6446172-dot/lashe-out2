@@ -112,6 +112,17 @@ Route::middleware(['auth'])->prefix('customer')->name('customer.')->group(functi
     Route::post('/removal/store', [RemovalController::class, 'store'])->name('removal.store');
 });
 
+// ========== حفظ العنوان في Session (AJAX) ==========
+Route::post('/customer/save-address-session', function (Illuminate\Http\Request $request) {
+    session([
+        'booking.latitude' => $request->latitude,
+        'booking.longitude' => $request->longitude,
+        'booking.address_text' => $request->address_text,
+    ]);
+    session()->save();
+    return response()->json(['success' => true]);
+})->name('customer.save-address-session');
+
 // ========== API الأوقات المتاحة (AJAX) ==========
 Route::middleware(['auth'])->get('/customer/get-available-times', function (Request $request) {
     $date = $request->date;

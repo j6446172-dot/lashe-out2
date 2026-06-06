@@ -10,12 +10,16 @@ use App\Models\Queue;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingConfirmedMail;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
     // ================= Dashboard =================
     public function dashboard()
     {
+        // 🔥 تحديث حجوزات إزالة الرموش المنتهية تلقائياً
+        $this->autoCompleteRemovalBookings();
+        
         $user = auth()->user();
         
         $completedBookings = $user->bookings()
@@ -33,8 +37,7 @@ class BookingController extends Controller
             ->take(3)
             ->get();
 
-        // ✅ استخدام الحقول الموجودة
-        $loyaltyPoints = $user->points; // من accessor في User model
+        $loyaltyPoints = $user->points;
         
         return view('customer.dashboard', compact('upcomingBookings', 'loyaltyPoints', 'completedBookings', 'totalBookings'));
     }
@@ -124,7 +127,12 @@ class BookingController extends Controller
 
         session([
             'booking.booking_date' => $validated['booking_date'],
-            'booking.booking_time' => $validated['booking_time']
+            'booking.booking_time' => $validated['booking_time'],
+            'booking.latitude' => $request->input('latitude', session('booking.latitude')),
+            'booking.longitude' => $request->input('longitude', session('booking.longitude')),
+            'booking.address_text' => $request->input('address_text', session('booking.address_text')),
+            'booking.building_number' => $request->input('building_number', session('booking.building_number')),
+            'booking.apartment' => $request->input('apartment', session('booking.apartment')),
         ]);
         session()->save();
 
@@ -193,11 +201,31 @@ class BookingController extends Controller
         ]);
         session()->save();
 
+        if ($validated['location'] == 'home' && $request->has('save_address')) {
+            $user = auth()->user();
+            
+            if ($validated['latitude'] && $validated['longitude'] && $validated['address_text']) {
+                $user->default_latitude = $validated['latitude'];
+                $user->default_longitude = $validated['longitude'];
+                $user->default_address = $validated['address_text'];
+            }
+            
+            if (!empty($validated['building_number'])) {
+                $user->default_building_number = $validated['building_number'];
+            }
+            
+            if (!empty($validated['apartment'])) {
+                $user->default_apartment = $validated['apartment'];
+            }
+            
+            $user->save();
+        }
+
         return redirect()->route('customer.bookings.confirm');
     }
 
-   // ================= CONFIRM - صفحة التأكيد =================
-public function confirm()
+    // ================= CONFIRM - صفحة التأكيد =================
+   public function confirm()
 {
     $booking = session('booking');
     
@@ -209,7 +237,6 @@ public function confirm()
     $staff = User::find($booking['staff_id']);
     $user = auth()->user();
     
-    // حساب السعر الأساسي
     $services = ['classic' => 30, 'wet' => 40, 'wispy' => 50, 'volume' => 45, 'anime' => 55];
     $originalPrice = $services[$booking['service_type']] ?? 30;
     
@@ -232,17 +259,41 @@ public function confirm()
         $basePrice += 10;
     }
     
-    // معلومات الخصم للعرض في الصفحة
     $hasDiscount = $user->isEligibleForDiscount();
-    $discountAmount = $user->getDiscountAmount();
+    
+    
+    $discountAmount = $hasDiscount ? $user->getDiscountAmount($basePrice) : 0;
     $finalPriceAfterDiscount = $basePrice - $discountAmount;
     if ($finalPriceAfterDiscount < 0) $finalPriceAfterDiscount = 0;
     
     return view('customer.bookings.confirm', compact('booking', 'staff', 'basePrice', 'hasDiscount', 'discountAmount', 'finalPriceAfterDiscount'));
 }
+    // ================= تحديث حجوزات إزالة الرموش المنتهية تلقائياً =================
+    public function autoCompleteRemovalBookings()
+    {
+        $expiredRemovals = Booking::where('status', 'confirmed')
+            ->where('service_type', 'removal')
+            ->where(function($query) {
+                $query->where('booking_date', '<', today())
+                      ->orWhere(function($q) {
+                          $q->where('booking_date', today())
+                            ->where('booking_time', '<', now()->format('H:i'));
+                      });
+            })
+            ->get();
+        
+        foreach ($expiredRemovals as $booking) {
+            $booking->status = 'completed';
+            $booking->completed_at = now();
+            $booking->save();
+            
+            // إضافة 5 نقاط تلقائياً لإزالة الرموش
+            $booking->user->addPoints(5);
+        }
+    }
 
-// ================= STORE =================
-public function store(Request $request)
+    // ================= STORE =================
+    public function store(Request $request)
 {
     $data = session('booking');
 
@@ -253,7 +304,6 @@ public function store(Request $request)
 
     $user = auth()->user();
 
-    // حساب السعر
     $services = ['classic' => 30, 'wet' => 40, 'wispy' => 50, 'volume' => 45, 'anime' => 55];
     $originalPrice = $services[$data['service_type']] ?? 0;
 
@@ -270,23 +320,24 @@ public function store(Request $request)
             break;
     }
 
-    // تطبيق الخصم إذا اختارته العميلة
+    $basePrice = $priceAfterDuration;
+    
+    if ($data['location'] == 'home') {
+        $basePrice += 10;
+    }
+
+    //  حساب الخصم
     $discountAmount = 0;
     $useDiscount = $request->input('use_discount', 0);
     
     if ($useDiscount && $user->isEligibleForDiscount()) {
-        $discountAmount = $user->applyDiscount(); // هذي تخصم النقاط وترجع قيمة الخصم
+        $discountAmount = $user->applyDiscount($basePrice); //  تمرير $basePrice
     }
 
-    $finalPrice = $priceAfterDuration - $discountAmount;
-
-    if ($data['location'] == 'home') {
-        $finalPrice += 10;
-    }
+    $finalPrice = $basePrice - $discountAmount;
     
     if ($finalPrice < 0) $finalPrice = 0;
 
-    // إنشاء الحجز
     $booking = Booking::create([
         'user_id' => $user->id,
         'staff_id' => $data['staff_id'],
@@ -305,10 +356,8 @@ public function store(Request $request)
         'apartment' => $data['apartment'] ?? null,
     ]);
 
-    // إرسال إيميل
     Mail::to($user->email)->send(new BookingConfirmedMail($booking, $user));
 
-    // حفظ العنوان إذا اختارت
     if ($data['save_address'] ?? false) {
         $user->update([
             'default_latitude' => $data['latitude'] ?? null,
@@ -333,7 +382,7 @@ public function completeBooking($id)
     $booking = Booking::findOrFail($id);
     
     if (!in_array(auth()->user()->role, ['admin', 'staff', 'owner'])) {
-        abort(403, 'غير مصرح لك بهذا الإجراء');
+        abort(403);
     }
     
     if ($booking->status === 'completed') {
@@ -344,27 +393,70 @@ public function completeBooking($id)
         return back()->with('error', 'لا يمكن إكمال حجز غير مؤكد');
     }
     
-    // تحديث حالة الحجز
+    if ($booking->service_type == 'removal') {
+        return back()->with('error', '❌ حجوزات إزالة الرموش تكتمل تلقائياً');
+    }
+    
     $booking->status = 'completed';
     $booking->completed_at = now();
     $booking->save();
     
-    // إضافة 10 نقاط للعميلة
-    $user = $booking->user;
-    $user->addPoints(10);
+    //  ا إضافة نقاط بقوة
+    $userId = $booking->user_id;
+    $pointsToAdd = 10;
     
-    return back()->with('success', '✅ تم إكمال الحجز وأضيفت 10 نقاط للعميلة');
+    // 1. نبحث عن السجل
+    $check = DB::table('loyalty_points')->where('user_id', $userId)->first();
+    
+    if ($check) {
+        // 2. إذا موجود نزود النقاط
+        DB::table('loyalty_points')->where('user_id', $userId)->update([
+            'points' => $check->points + $pointsToAdd,
+            'updated_at' => now()
+        ]);
+    } else {
+        // 3. إذا مش موجود ننشئ سجل جديد
+        DB::table('loyalty_points')->insert([
+            'user_id' => $userId,
+            'points' => $pointsToAdd,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+    }
+    
+    // 4. نتأكد من الرصيد الجديد (للتأكد فقط)
+    $newPoints = DB::table('loyalty_points')->where('user_id', $userId)->value('points');
+    
+    return back()->with('success', "✅ تم إكمال الحجز وأضيفت {$pointsToAdd} نقاط (الرصيد الآن: {$newPoints})");
 }
 
     // ================= BOOKINGS MANAGEMENT =================
     public function index()
     {
-        $bookings = auth()->user()->bookings()
+        // 🔥 تحديث حجوزات إزالة الرموش المنتهية تلقائياً
+        $this->autoCompleteRemovalBookings();
+        
+        $user = auth()->user();
+        
+        $activeBookings = $user->bookings()
+            ->where('status', 'confirmed')
+            ->orderBy('booking_date', 'asc')
+            ->orderBy('booking_time', 'asc')
+            ->get();
+        
+        $pastBookings = $user->bookings()
+            ->where('status', 'completed')
             ->orderBy('booking_date', 'desc')
             ->orderBy('booking_time', 'desc')
-            ->paginate(10);
+            ->get();
         
-        return view('customer.bookings.index', compact('bookings'));
+        $cancelledBookings = $user->bookings()
+            ->where('status', 'cancelled')
+            ->orderBy('booking_date', 'desc')
+            ->orderBy('booking_time', 'desc')
+            ->get();
+        
+        return view('customer.bookings.index', compact('activeBookings', 'pastBookings', 'cancelledBookings'));
     }
 
     public function show($id)
@@ -524,6 +616,7 @@ public function completeBooking($id)
 
     private function getSuggestedDates()
     {
+         \Cache::forget('suggested_dates');
         $suggested = [];
         
         $totalStaff = User::where('role', 'staff')->count();

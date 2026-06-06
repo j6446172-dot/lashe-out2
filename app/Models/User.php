@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -14,6 +15,8 @@ class User extends Authenticatable
         'name', 'email', 'password', 'phone', 'role',
         'total_bookings', 'last_eye_shape', 'last_style_preference',
         'last_lash_duration', 'avatar',
+        'default_latitude', 'default_longitude', 'default_address',
+        'default_building_number', 'default_apartment',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -73,41 +76,48 @@ class User extends Authenticatable
         return $this->role === 'owner';
     }
 
-    // ========== نظام النقاط والخصم الاحترافي ==========
+    // ========== نظام النقاط والخصم ==========
     
     /**
      * الحصول على رصيد النقاط الحالي
      */
     public function getPointsAttribute(): int
     {
-        return $this->loyaltyPoints ? $this->loyaltyPoints->points : 0;
+        // استخدام DB مباشرة لضمان الحصول على القيمة الصحيحة
+        $loyalty = DB::table('loyalty_points')->where('user_id', $this->id)->first();
+        return $loyalty ? $loyalty->points : 0;
     }
     
     /**
-     * إضافة نقاط للعميلة (بعد إتمام الحجز)
+     * إضافة نقاط للعميلة
      */
     public function addPoints(int $points): void
     {
-        if ($this->loyaltyPoints) {
-            $this->loyaltyPoints->increment('points', $points);
+        // استخدام DB مباشرة بدل Eloquent لضمان العمل
+        $existing = DB::table('loyalty_points')->where('user_id', $this->id)->first();
+        
+        if ($existing) {
+            DB::table('loyalty_points')->where('user_id', $this->id)->increment('points', $points);
         } else {
-            $this->loyaltyPoints()->create(['points' => $points]);
+            DB::table('loyalty_points')->insert([
+                'user_id' => $this->id,
+                'points' => $points,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
         }
     }
     
     /**
-     * خصم نقاط من العميلة (عند استخدام الخصم)
+     * خصم نقاط من العميلة
      */
     public function deductPoints(int $points): void
     {
-        if ($this->loyaltyPoints) {
-            $this->loyaltyPoints->decrement('points', $points);
-        }
+        DB::table('loyalty_points')->where('user_id', $this->id)->decrement('points', $points);
     }
     
     /**
      * هل العميلة مؤهلة للحصول على خصم؟
-     * (تحتاج 50 نقطة على الأقل)
      */
     public function isEligibleForDiscount(): bool
     {
@@ -115,24 +125,25 @@ class User extends Authenticatable
     }
     
     /**
-     * قيمة الخصم المستحق (كل 50 نقطة = 5 دنانير)
-     * الحد الأقصى 10 دنانير في الحجز الواحد
+     * قيمة الخصم المستحق (15% من السعر)
      */
-    public function getDiscountAmount(): float
+    public function getDiscountAmount($basePrice = null): float
     {
-        if (!$this->isEligibleForDiscount()) {
+        if (!$this->isEligibleForDiscount() || !$basePrice) {
             return 0;
         }
         
-        $maxDiscountPerBooking = 10; // أقصى خصم 10 دنانير في الحجز الواحد
-        $calculatedDiscount = floor($this->points / 50) * 5;
+        // خصم 15% مرة واحدة فقط
+        $discountValue = $basePrice * 0.15;
         
-        return min($calculatedDiscount, $maxDiscountPerBooking);
+        // الحد الأقصى للخصم 50% من السعر
+        $maxDiscount = $basePrice * 0.5;
+        
+        return min($discountValue, $maxDiscount);
     }
     
     /**
-     * عدد النقاط التي سيتم خصمها عند استخدام الخصم
-     * (لكل 5 دنانير = 50 نقطة)
+     * عدد النقاط التي سيتم خصمها (50 نقطة فقط)
      */
     public function getPointsToDeduct(): int
     {
@@ -140,17 +151,19 @@ class User extends Authenticatable
             return 0;
         }
         
-        $discountAmount = $this->getDiscountAmount();
-        return ($discountAmount / 5) * 50;
+        return 50;
     }
     
     /**
-     * تطبيق الخصم (يخصم فقط النقاط المستحقة حسب قيمة الخصم)
-     * مثال: 120 نقطة → خصم 10 دنانير → يخصم 100 نقطة → يتبقى 20 نقطة
+     * تطبيق الخصم
      */
-    public function applyDiscount(): float
+    public function applyDiscount($basePrice = null): float
     {
-        $discountAmount = $this->getDiscountAmount();
+        if (!$basePrice) {
+            return 0;
+        }
+        
+        $discountAmount = $this->getDiscountAmount($basePrice);
         $pointsToDeduct = $this->getPointsToDeduct();
         
         if ($pointsToDeduct > 0 && $this->points >= $pointsToDeduct) {

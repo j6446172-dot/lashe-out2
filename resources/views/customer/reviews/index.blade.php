@@ -27,10 +27,11 @@
                     </div>
                 @endif
 
-                {{-- ===== الخدمات التي تحتاج تقييم ===== --}}
+                {{-- ===== الخدمات التي تحتاج تقييم (باستثناء إزالة الرموش) ===== --}}
                 @php
                     $needReview = auth()->user()->bookings()
                         ->where('status', 'completed')
+                        ->where('service_type', '!=', 'removal')
                         ->whereDoesntHave('review')
                         ->orderBy('booking_date', 'desc')
                         ->get();
@@ -51,9 +52,10 @@
                                 <div class="text-right">
                                     <p class="font-bold" style="color: #2B1E1A;">
                                         @if($booking->service_type == 'classic') كلاسيك
-                                        @elseif($booking->service_type == 'hybrid') هايبرد
+                                        @elseif($booking->service_type == 'wet') ويت ست
+                                        @elseif($booking->service_type == 'wispy') ويسبي
                                         @elseif($booking->service_type == 'volume') فولوم
-                                        @else إزالة رموش
+                                        @elseif($booking->service_type == 'anime') أنمي
                                         @endif
                                     </p>
                                     <p class="text-sm" style="color: #7C8574;">{{ $booking->staff->name ?? 'موظفة' }}</p>
@@ -95,9 +97,10 @@
                                         <div class="text-right">
                                             <p class="font-bold" style="color: #2B1E1A;">
                                                 @if($review->booking->service_type == 'classic') كلاسيك
-                                                @elseif($review->booking->service_type == 'hybrid') هايبرد
+                                                @elseif($review->booking->service_type == 'wet') ويت ست
+                                                @elseif($review->booking->service_type == 'wispy') ويسبي
                                                 @elseif($review->booking->service_type == 'volume') فولوم
-                                                @else إزالة رموش
+                                                @elseif($review->booking->service_type == 'anime') أنمي
                                                 @endif
                                             </p>
                                             <p class="text-sm" style="color: #7C8574;">{{ $review->booking->staff->name ?? 'موظفة' }}</p>

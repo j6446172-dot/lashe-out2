@@ -108,6 +108,12 @@
 
                 <form method="POST" action="{{ route('customer.bookings.step3.post') }}" id="bookingForm">
                     @csrf
+                    {{-- ========== الحقول المخفية لنقل بيانات الخريطة من step2 إلى step4 ========== --}}
+                  <input type="hidden" name="latitude" value="{{ session('booking.latitude') }}">
+                  <input type="hidden" name="longitude" value="{{ session('booking.longitude') }}">
+                  <input type="hidden" name="address_text" value="{{ session('booking.address_text') }}">
+                  <input type="hidden" name="building_number" value="{{ session('booking.building_number') }}">
+                  <input type="hidden" name="apartment" value="{{ session('booking.apartment') }}">
                     
                     {{-- ========== اختيار التاريخ ========== --}}
                     <div class="mb-8">

@@ -96,7 +96,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label class="location-option border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:shadow-md" 
                                style="border-color: rgba(176, 141, 87, 0.2);">
-                            <input type="radio" name="location" value="salon" class="ml-3" required style="accent-color: #B08D57;" {{ old('location', session('booking.location')) == 'salon' ? 'checked' : '' }}>
+                            <input type="radio" name="location" value="salon" class="ml-3" required style="accent-color: #B08D57;">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-spa text-2xl" style="color: #B08D57;"></i>
                                 <div>
@@ -108,7 +108,7 @@
                         
                         <label class="location-option border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:shadow-md" 
                                style="border-color: rgba(176, 141, 87, 0.2);">
-                            <input type="radio" name="location" value="home" class="ml-3" required style="accent-color: #B08D57;" {{ old('location', session('booking.location')) == 'home' ? 'checked' : '' }}>
+                            <input type="radio" name="location" value="home" class="ml-3" required style="accent-color: #B08D57;">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-home text-2xl" style="color: #B08D57;"></i>
                                 <div>
@@ -119,75 +119,60 @@
                         </label>
                     </div>
                     
-                    {{-- ========== الخريطة (تظهر فقط عند اختيار خدمة منزلية والعميل ما عنده عنوان محفوظ) ========== --}}
-                    @php
-                        $hasSavedAddress = auth()->user()->default_latitude && auth()->user()->default_longitude && auth()->user()->default_address;
-                    @endphp
-                    
-                    <div id="homeAddressSection" class="mt-4 {{ (old('location', session('booking.location')) == 'home' && !$hasSavedAddress) ? '' : 'hidden' }}">
+                    {{-- ========== الخريطة ========== --}}
+                    <div id="homeAddressSection" class="mt-4 hidden">
                         <div class="rounded-2xl p-4" style="background: rgba(176, 141, 87, 0.08);">
+                            <h3 class="font-bold text-right mb-3" style="color: #2B1E1A;">📍 اختاري موقعك على الخريطة</h3>
                             
-                            @if($hasSavedAddress)
-                                {{-- العميل عنده عنوان محفوظ → يظهر له العنوان فقط بدون خريطة --}}
-                                <div class="bg-white p-4 rounded-xl text-right mb-3">
-                                    <p class="text-sm font-bold" style="color: #2B1E1A;">📍 عنوانك المحفوظ:</p>
-                                    <p class="text-md mt-1" style="color: #2B1E1A;">{{ auth()->user()->default_address }}</p>
-                                    @if(auth()->user()->default_building_number || auth()->user()->default_apartment)
-                                        <p class="text-sm mt-1" style="color: #7C8574;">
-                                            @if(auth()->user()->default_building_number) بناية {{ auth()->user()->default_building_number }} @endif
-                                            @if(auth()->user()->default_apartment) - {{ auth()->user()->default_apartment }} @endif
-                                        </p>
-                                    @endif
-                                    <p class="text-xs mt-2" style="color: #10b981;">✅ سيتم استخدام هذا العنوان تلقائياً</p>
+                            {{-- 🔥 رسالة توضيحية إذا كان فيه عنوان محفوظ --}}
+                            @if(auth()->user()->default_latitude && auth()->user()->default_longitude)
+                                <div class="mb-3 p-3 rounded-xl text-right" style="background: rgba(16, 185, 129, 0.1); border-right: 3px solid #10b981;">
+                                    <i class="fas fa-check-circle ml-1" style="color: #10b981;"></i>
+                                    <span class="font-bold" style="color: #2B1E1A;">✅ عنوانك المحفوظ:</span>
+                                    <p class="text-sm mt-1" style="color: #7C8574;">{{ auth()->user()->default_address ?? 'تم تحديد موقعك مسبقاً' }}</p>
+                                    <p class="text-xs mt-2" style="color: #B08D57;">
+                                        <i class="fas fa-map-marker-alt ml-1"></i>
+                                        يمكنك المتابعة مباشرة أو سحب العلامة لتعديل الموقع
+                                    </p>
                                 </div>
-                                
-                                {{-- حقول مخفية بالقيم المحفوظة --}}
-                                <input type="hidden" name="latitude" value="{{ auth()->user()->default_latitude }}">
-                                <input type="hidden" name="longitude" value="{{ auth()->user()->default_longitude }}">
-                                <input type="hidden" name="address_text" value="{{ auth()->user()->default_address }}">
-                                <input type="hidden" name="building_number" value="{{ auth()->user()->default_building_number }}">
-                                <input type="hidden" name="apartment" value="{{ auth()->user()->default_apartment }}">
-                                <input type="hidden" name="save_address" value="1">
-                                
-                            @else
-                                {{-- عميل جديد → يظهر الخريطة كاملة --}}
-                                <h3 class="font-bold text-right mb-3" style="color: #2B1E1A;">📍 اختاري موقعك على الخريطة</h3>
-                                
-                                <div style="position: relative;">
-                                    <div id="map" style="height: 350px; width: 100%; border-radius: 16px; margin-bottom: 12px;"></div>
-                                    <input type="text" id="search-input" 
-                                           class="search-control" 
-                                           placeholder="🔍 ابحثي عن عنوان...">
-                                </div>
-                                
-                                <div class="bg-white p-3 rounded-xl text-right mb-3">
-                                    <p class="text-sm font-bold" style="color: #2B1E1A;">📍 العنوان المختار:</p>
-                                    <p id="selected-address" class="text-sm mt-1" style="color: #7C8574;">اضغطي على الخريطة لتحديد موقعك</p>
-                                </div>
-                                
-                                <input type="hidden" name="latitude" id="latitude" value="">
-                                <input type="hidden" name="longitude" id="longitude" value="">
-                                <input type="hidden" name="address_text" id="address_text" value="">
-                                
-                                <div class="grid grid-cols-2 gap-3 mt-3">
-                                    <div>
-                                        <label class="block text-sm font-bold text-right mb-1" style="color: #2B1E1A;">رقم البناية (اختياري)</label>
-                                        <input type="text" name="building_number" 
-                                               class="w-full p-2 rounded-lg border text-right"
-                                               style="background: rgba(255,255,255,0.8);"
-                                               placeholder="">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-bold text-right mb-1" style="color: #2B1E1A;">الطابق/الشقة (اختياري)</label>
-                                        <input type="text" name="apartment" 
-                                               class="w-full p-2 rounded-lg border text-right"
-                                               style="background: rgba(255,255,255,0.8);"
-                                               placeholder="">
-                                    </div>
-                                </div>
-                                
-                                <input type="hidden" name="save_address" value="1">
                             @endif
+                            
+                            <div style="position: relative;">
+                                <div id="map" style="height: 350px; width: 100%; border-radius: 16px; margin-bottom: 12px;"></div>
+                                <input type="text" id="search-input" 
+                                       class="search-control" 
+                                       placeholder="🔍 ابحثي عن عنوان...">
+                            </div>
+                            
+                            <div class="bg-white p-3 rounded-xl text-right mb-3">
+                                <p class="text-sm font-bold" style="color: #2B1E1A;">📍 العنوان المختار:</p>
+                                <p id="selected-address" class="text-sm mt-1" style="color: #7C8574;">اضغطي على الخريطة لتحديد موقعك</p>
+                            </div>
+                            
+                            <input type="hidden" name="latitude" id="latitude" value="{{ session('booking.latitude', auth()->user()->default_latitude) }}">
+                            <input type="hidden" name="longitude" id="longitude" value="{{ session('booking.longitude', auth()->user()->default_longitude) }}">
+                            <input type="hidden" name="address_text" id="address_text" value="{{ session('booking.address_text', auth()->user()->default_address) }}">
+                            
+                            <div class="grid grid-cols-2 gap-3 mt-3">
+                                <div>
+                                    <label class="block text-sm font-bold text-right mb-1" style="color: #2B1E1A;">رقم البناية (اختياري)</label>
+                                    <input type="text" name="building_number" 
+                                           value="{{ old('building_number', session('booking.building_number', auth()->user()->default_building_number)) }}"
+                                           class="w-full p-2 rounded-lg border text-right"
+                                           style="background: rgba(255,255,255,0.8);"
+                                           placeholder="مثال: 15">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-right mb-1" style="color: #2B1E1A;">الطابق/الشقة (اختياري)</label>
+                                    <input type="text" name="apartment" 
+                                           value="{{ old('apartment', session('booking.apartment', auth()->user()->default_apartment)) }}"
+                                           class="w-full p-2 rounded-lg border text-right"
+                                           style="background: rgba(255,255,255,0.8);"
+                                           placeholder="مثال: طابق 3، شقة 5">
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" name="save_address" value="1">
                         </div>
                     </div>
                 </div>
@@ -290,20 +275,16 @@
         });
     });
     
-    // إظهار/إخفاء الخريطة عند اختيار خدمة منزلية (فقط للعملاء الجدد)
+    // إظهار الخريطة عند اختيار خدمة منزلية
     const locationRadios = document.querySelectorAll('input[name="location"]');
     const homeAddressSection = document.getElementById('homeAddressSection');
-    const hasSavedAddress = {{ $hasSavedAddress ? 'true' : 'false' }};
     
     locationRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'home') {
                 homeAddressSection.classList.remove('hidden');
                 homeAddressSection.classList.add('block');
-                // فقط إذا ما في عنوان محفوظ وكانت الخريطة موجودة
-                if (!hasSavedAddress && typeof map !== 'undefined' && map) {
-                    setTimeout(() => { map.invalidateSize(); }, 100);
-                }
+                setTimeout(() => { if (typeof map !== 'undefined' && map) map.invalidateSize(); }, 100);
             } else {
                 homeAddressSection.classList.add('hidden');
                 homeAddressSection.classList.remove('block');
@@ -311,21 +292,41 @@
         });
     });
     
-    // ========== الخريطة (فقط للعملاء الجدد) ==========
-    @if(!$hasSavedAddress)
-    const defaultLat = 31.9539;
-    const defaultLng = 35.9106;
-    
+    // ========== الخريطة ==========
     let map, marker;
+    let isFirstLoad = true;
     
     function initMap() {
-        map = L.map('map').setView([defaultLat, defaultLng], 13);
+        // جلب القيم من Session أو من قاعدة البيانات
+        let startLat = {{ session('booking.latitude') ?? auth()->user()->default_latitude ?? 31.9539 }};
+        let startLng = {{ session('booking.longitude') ?? auth()->user()->default_longitude ?? 35.9106 }};
+        let startAddress = "{{ addslashes(session('booking.address_text', auth()->user()->default_address ?? '')) }}";
+        
+        // التحقق من وجود عنوان محفوظ في قاعدة البيانات
+        let hasSavedAddress = {{ auth()->user()->default_latitude ? 'true' : 'false' }};
+        
+        // إذا كان فيه عنوان محفوظ والمستخدم ما اختار عنوان جديد في هذه الجلسة، استخدم المحفوظ
+        if (hasSavedAddress && (!startAddress || startAddress == '')) {
+            startLat = {{ auth()->user()->default_latitude ?? 31.9539 }};
+            startLng = {{ auth()->user()->default_longitude ?? 35.9106 }};
+            startAddress = "{{ addslashes(auth()->user()->default_address ?? '') }}";
+            
+            // حفظ العنوان المحفوظ في Session عشان يضل موجود
+            saveAddressToSession(startLat, startLng, startAddress);
+        }
+        
+        // تأكد إن القيم أرقام صحيحة
+        startLat = parseFloat(startLat) || 31.9539;
+        startLng = parseFloat(startLng) || 35.9106;
+        
+        // إنشاء الخريطة
+        map = L.map('map').setView([startLat, startLng], 15);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
         
-        marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+        marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
         
         marker.on('dragend', function() {
             const latLng = marker.getLatLng();
@@ -337,7 +338,38 @@
             updateLocation(e.latlng);
         });
         
-        updateLocation({ lat: defaultLat, lng: defaultLng });
+        // تعبئة العنوان إذا كان موجود
+        if (startAddress && startAddress != '') {
+            document.getElementById('selected-address').innerHTML = `📍 ${startAddress}`;
+            document.getElementById('address_text').value = startAddress;
+            document.getElementById('latitude').value = startLat;
+            document.getElementById('longitude').value = startLng;
+            
+            // إذا كان أول تحميل ومافيش Session، نخزن العنوان في Session
+            if (hasSavedAddress && !{{ session('booking.address_text') ? 'true' : 'false' }}) {
+                saveAddressToSession(startLat, startLng, startAddress);
+            }
+        } else {
+            updateLocation({ lat: startLat, lng: startLng });
+        }
+        
+        isFirstLoad = false;
+    }
+    
+    // دالة لحفظ العنوان في Session عبر AJAX
+    function saveAddressToSession(lat, lng, address) {
+        fetch('{{ route("customer.save-address-session") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                latitude: lat,
+                longitude: lng,
+                address_text: address
+            })
+        }).catch(error => console.error('Error saving address:', error));
     }
     
     function updateLocation(latLng) {
@@ -353,49 +385,70 @@
                 const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                 document.getElementById('selected-address').innerHTML = `📍 ${address}`;
                 document.getElementById('address_text').value = address;
+                
+                // حفظ العنوان في Session إذا كان التغيير من المستخدم وليس أول تحميل
+                if (!isFirstLoad) {
+                    saveAddressToSession(lat, lng, address);
+                }
             })
             .catch(() => {
-                document.getElementById('selected-address').innerHTML = `📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                document.getElementById('address_text').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                const address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                document.getElementById('selected-address').innerHTML = `📍 ${address}`;
+                document.getElementById('address_text').value = address;
+                
+                if (!isFirstLoad) {
+                    saveAddressToSession(lat, lng, address);
+                }
             });
     }
     
+    // ========== شريط البحث ==========
     const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        async function searchLocation() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-            
-            searchInput.style.opacity = '0.5';
-            searchInput.placeholder = 'جاري البحث...';
-            
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&accept-language=ar`);
-                const data = await response.json();
-                
-                if (data && data.length > 0) {
-                    const result = data[0];
-                    const lat = parseFloat(result.lat);
-                    const lon = parseFloat(result.lon);
-                    
-                    map.setView([lat, lon], 15);
-                    marker.setLatLng([lat, lon]);
-                    
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lon;
-                    document.getElementById('selected-address').innerHTML = `📍 ${result.display_name}`;
-                    document.getElementById('address_text').value = result.display_name;
-                } else {
-                    alert('⚠️ لم يتم العثور على هذا العنوان');
-                }
-            } catch (error) {
-                alert('حدث خطأ في البحث');
-            } finally {
-                searchInput.style.opacity = '1';
-                searchInput.placeholder = '🔍 ابحثي عن عنوان...';
-            }
-        }
+    
+    async function searchLocation() {
+        const query = searchInput.value.trim();
+        if (!query) return;
         
+        searchInput.style.opacity = '0.5';
+        searchInput.placeholder = 'جاري البحث...';
+        
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&accept-language=ar`);
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                const result = data[0];
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                
+                map.setView([lat, lon], 15);
+                marker.setLatLng([lat, lon]);
+                
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lon;
+                document.getElementById('selected-address').innerHTML = `📍 ${result.display_name}`;
+                document.getElementById('address_text').value = result.display_name;
+                
+                // حفظ العنوان في Session
+                saveAddressToSession(lat, lon, result.display_name);
+                
+                searchInput.style.borderColor = '#10b981';
+                setTimeout(() => { searchInput.style.borderColor = '#ddd'; }, 2000);
+            } else {
+                alert('⚠️ لم يتم العثور على هذا العنوان. حاولي كتابة اسم المنطقة بدقة.');
+                searchInput.style.borderColor = '#dc2626';
+                setTimeout(() => { searchInput.style.borderColor = '#ddd'; }, 2000);
+            }
+        } catch (error) {
+            console.error('خطأ في البحث:', error);
+            alert('حدث خطأ في البحث. حاولي مرة أخرى.');
+        } finally {
+            searchInput.style.opacity = '1';
+            searchInput.placeholder = '🔍 ابحثي عن عنوان...';
+        }
+    }
+    
+    if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -404,20 +457,30 @@
         });
     }
     
-    document.addEventListener('DOMContentLoaded', initMap);
-    @endif
-    
-    // منع العميل الجديد من الإرسال بدون اختيار موقع (فقط إذا الخريطة موجودة)
-    @if(!$hasSavedAddress)
-    const latField = document.getElementById('latitude');
-    const lngField = document.getElementById('longitude');
-    
+    // ========== التحقق من الموقع عند الإرسال ==========
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
-        if ((!latField.value || latField.value == '') || (!lngField.value || lngField.value == '')) {
+        const locationRadio = document.querySelector('input[name="location"]:checked');
+        const isHomeService = locationRadio && locationRadio.value === 'home';
+        
+        if (!isHomeService) return;
+        
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const hasDefault = {{ auth()->user()->default_latitude ? 'true' : 'false' }};
+        const hasSessionAddress = "{{ session('booking.address_text') }}" != '';
+        
+        // ✅ إذا عنده عنوان محفوظ في قاعدة البيانات أو في Session، يسمح له بالاستمرار
+        if (hasDefault || hasSessionAddress) {
+            return;
+        }
+        
+        // ❌ إذا ما عنده عنوان، يتأكد إنه اختار موقع
+        if (!lat || !lng || lat == '31.9539' && lng == '35.9106') {
             e.preventDefault();
-            alert('⚠️ الرجاء اختيار موقعك على الخريطة قبل المتابعة (اضغطي على الخريطة أو ابحثي عن عنوانك)');
+            alert('⚠️ الرجاء اختيار موقعك على الخريطة قبل المتابعة');
         }
     });
-    @endif
+    
+    document.addEventListener('DOMContentLoaded', initMap);
 </script>
 @endsection
