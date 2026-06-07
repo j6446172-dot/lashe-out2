@@ -100,7 +100,7 @@
                             <span class="font-medium" style="color: #2B1E1A;">{{ session('booking.location') == 'salon' ? 'في الصالون' : 'خدمة منزلية' }}</span>
                         </div>
 
-                        {{-- حساب السعر الأساسي --}}
+                        {{-- ========== حساب السعر والخصم التلقائي ========== --}}
                         @php
                             $servicesPrice = [
                                 'classic' => 30,
@@ -132,97 +132,50 @@
                                 $basePrice += 10;
                             }
                             
-                            // حساب الخصومات المتاحة
+                            // ========== الخصم التلقائي ==========
                             $userPoints = $user->points ?? 0;
-                            $availableDiscounts = floor($userPoints / 50);
-                            $hasDiscount = $availableDiscounts > 0;
+                            $hasDiscount = $userPoints >= 50;
                             
-                            // إنشاء مصفوفة الخيارات
-                            $discountOptions = [];
-                            $discountOptions[] = [
-                                'percent' => 0,
-                                'points' => 0,
-                                'price' => $basePrice,
-                                'label' => 'بدون خصم',
-                                'description' => 'الحفاظ على النقاط للمستقبل'
-                            ];
-                            
-                            for ($i = 1; $i <= $availableDiscounts; $i++) {
-                                $percent = $i * 15;
-                                $points = $i * 50;
-                                $price = $basePrice * (1 - ($percent / 100));
-                                if ($price < 0) $price = 0;
-                                
-                                $discountOptions[] = [
-                                    'percent' => $percent,
-                                    'points' => $points,
-                                    'price' => $price,
-                                    'label' => "خصم {$percent}%",
-                                    'description' => "استخدام {$points} نقطة" . ($points > 0 ? " (سيتبقى " . ($userPoints - $points) . " نقطة)" : "")
-                                ];
+                            if ($hasDiscount) {
+                                $discountPercent = 15;
+                                $discountAmount = $basePrice * 0.15;
+                                $finalPrice = $basePrice - $discountAmount;
+                                if ($finalPrice < 0) $finalPrice = 0;
+                                $pointsToUse = 50;
+                            } else {
+                                $discountPercent = 0;
+                                $discountAmount = 0;
+                                $finalPrice = $basePrice;
+                                $pointsToUse = 0;
                             }
-                            
-                            // ترتيب الخيارات تنازلياً (الأعلى خصم أولاً)
-                            $discountOptions = array_reverse($discountOptions);
                         @endphp
 
-                        {{-- قسم الخصومات --}}
+                        {{-- قسم الخصم التلقائي --}}
                         @if($hasDiscount)
-                        <div class="rounded-2xl p-4 mt-2" style="background: rgba(176, 141, 87, 0.1); border: 2px solid #B08D57;">
-                            <div class="flex items-center gap-2 mb-3">
-                                <i class="fas fa-gift text-xl" style="color: #B08D57;"></i>
-                                <span class="font-bold" style="color: #2B1E1A;">🎁 اختر خصمك المناسب</span>
+                        <div class="rounded-2xl p-4 mt-2" style="background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981;">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fas fa-gift text-xl" style="color: #10b981;"></i>
+                                <span class="font-bold" style="color: #2B1E1A;">🎉 خصم 15%!</span>
                             </div>
-                            <p class="text-sm text-right mb-3" style="color: #7C8574;">
-                                لديك {{ $userPoints }} نقطة (تؤهلك {{ $availableDiscounts }} خصم)
+                            <p class="text-sm text-right" style="color: #7C8574;">
+                                تم تطبيق خصم 15% باستخدام 50 نقطة من رصيدك
                             </p>
-                            
-                            <div class="space-y-2">
-                                @foreach($discountOptions as $index => $option)
-                                <label class="flex items-center justify-between cursor-pointer p-3 rounded-xl transition-all duration-300 hover:shadow-md discount-option" 
-                                       style="background: rgba(255, 255, 255, 0.8); {{ $index == 0 ? 'border: 2px solid #10b981;' : '' }}">
-                                    <div class="flex items-center gap-3">
-                                        <input type="radio" name="discount_option" value="{{ $option['percent'] }}" 
-                                               data-points="{{ $option['points'] }}"
-                                               data-price="{{ $option['price'] }}"
-                                               class="w-5 h-5 rounded discount-radio" 
-                                               style="accent-color: #B08D57;"
-                                               {{ $index == 0 ? 'checked' : '' }}>
-                                        <div>
-                                            <span class="font-bold" style="color: {{ $option['percent'] > 0 ? '#10b981' : '#7C8574' }};">
-                                                {{ $option['label'] }}
-                                            </span>
-                                            <p class="text-sm" style="color: #7C8574;">{{ $option['description'] }}</p>
-                                            @if($option['percent'] > 0)
-                                                <p class="text-xs" style="color: #B08D57;">
-                                                    💰 توفرين {{ number_format($basePrice - $option['price'], 2) }} دينار
-                                                </p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="text-left">
-                                        @if($option['percent'] > 0)
-                                            <span class="text-sm line-through" style="color: #9ca3af;">{{ number_format($basePrice, 2) }} د.أ</span>
-                                            <span class="font-bold text-lg block" style="color: #10b981;">{{ number_format($option['price'], 2) }} د.أ</span>
-                                        @else
-                                            <span class="font-bold text-lg" style="color: #B08D57;">{{ number_format($option['price'], 2) }} د.أ</span>
-                                        @endif
-                                    </div>
-                                </label>
-                                @endforeach
-                            </div>
-                            
-                            <div class="mt-3 p-2 rounded-lg text-center" style="background: rgba(176, 141, 87, 0.08);">
-                                <p class="text-xs" style="color: #7C8574;">
-                                    💡 يمكنك اختيار الخصم المناسب لك. كل 50 نقطة = خصم 15%
-                                </p>
-                            </div>
+                            <p class="text-xs text-right mt-1" style="color: #10b981;">
+                                ✨ رصيدك المتبقي بعد الخصم: {{ $userPoints - 50 }} نقطة
+                            </p>
                         </div>
 
-                        {{-- السعر الإجمالي --}}
+                        {{-- الحقول المخفية للخصم --}}
+                        <input type="hidden" name="discount_percent" id="discount_percent_input" value="{{ $discountPercent }}">
+                        <input type="hidden" name="points_to_use" id="points_to_use_input" value="{{ $pointsToUse }}">
+
+                        {{-- السعر الإجمالي مع الخصم --}}
                         <div class="flex justify-between items-center pt-3 border-t" style="border-color: rgba(176, 141, 87, 0.2);">
                             <span class="font-bold text-lg" style="color: #2B1E1A;">💰 المبلغ الإجمالي</span>
-                            <span class="text-2xl font-bold" id="totalPrice" style="color: #B08D57;">{{ number_format($basePrice, 2) }} د.أ</span>
+                            <div class="text-left">
+                                <span class="text-sm line-through" style="color: #9ca3af;">{{ number_format($basePrice, 2) }} د.أ</span>
+                                <span class="text-2xl font-bold block" id="totalPrice" style="color: #10b981;">{{ number_format($finalPrice, 2) }} د.أ</span>
+                            </div>
                         </div>
 
                         @else
@@ -231,7 +184,7 @@
                             <div class="text-center">
                                 <i class="fas fa-chart-line text-2xl mb-2" style="color: #B08D57;"></i>
                                 <p class="text-sm" style="color: #7C8574;">
-                                    ✨ اجمعي <strong>{{ 50 - $userPoints }}</strong> نقطة إضافية لتحصلي على خصم 15%!
+                                    ✨ اجمعي <strong>{{ 50 - $userPoints }}</strong> نقطة إضافية لتحصلي على خصم 15% !
                                 </p>
                                 <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
                                     <div class="h-2 rounded-full transition-all duration-500" style="width: {{ min(100, ($userPoints / 50) * 100) }}%; background: #B08D57;"></div>
@@ -240,9 +193,13 @@
                             </div>
                         </div>
 
+                        <input type="hidden" name="discount_percent" id="discount_percent_input" value="0">
+                        <input type="hidden" name="points_to_use" id="points_to_use_input" value="0">
+
+                        {{-- السعر الإجمالي بدون خصم --}}
                         <div class="flex justify-between items-center pt-3 border-t" style="border-color: rgba(176, 141, 87, 0.2);">
                             <span class="font-bold text-lg" style="color: #2B1E1A;">💰 المبلغ الإجمالي</span>
-                            <span class="text-2xl font-bold" style="color: #B08D57;">{{ number_format($basePrice, 2) }} د.أ</span>
+                            <span class="text-2xl font-bold" style="color: #B08D57;">{{ number_format($finalPrice, 2) }} د.أ</span>
                         </div>
                         @endif
 
@@ -256,8 +213,6 @@
                     </a>
                     <form action="{{ route('customer.bookings.store') }}" method="POST" class="flex-1" id="bookingForm">
                         @csrf
-                        <input type="hidden" name="discount_percent" id="discount_percent_input" value="0">
-                        <input type="hidden" name="points_to_use" id="points_to_use_input" value="0">
                         <button type="submit" class="w-full py-3 rounded-xl font-bold transition shadow-md hover:shadow-lg" style="background: #B08D57; color: #F3EDE6;">
                             <i class="fas fa-check-circle ml-2"></i> تأكيد الحجز
                         </button>
@@ -270,71 +225,9 @@
 </div>
 
 <script>
-    // معالجة اختيار الخصم
-    const radioButtons = document.querySelectorAll('input[name="discount_option"]');
-    const totalPriceSpan = document.getElementById('totalPrice');
-    const discountPercentInput = document.getElementById('discount_percent_input');
-    const pointsToUseInput = document.getElementById('points_to_use_input');
-    
-    radioButtons.forEach(radio => {
-        radio.addEventListener('change', function() {
-            const selectedPercent = parseInt(this.value);
-            const selectedPoints = parseInt(this.dataset.points);
-            const selectedPrice = parseFloat(this.dataset.price);
-            
-            // تحديث السعر المعروض
-            totalPriceSpan.innerHTML = selectedPrice.toFixed(2) + ' د.أ';
-            totalPriceSpan.style.color = selectedPercent > 0 ? '#10b981' : '#B08D57';
-            
-            // تحديث الحقول المخفية
-            discountPercentInput.value = selectedPercent;
-            pointsToUseInput.value = selectedPoints;
-            
-            // تأثير بسيط عند التحديد
-            document.querySelectorAll('.discount-option').forEach(option => {
-                option.style.border = 'none';
-                option.style.transform = 'scale(1)';
-            });
-            this.closest('.discount-option').style.border = '2px solid #B08D57';
-            this.closest('.discount-option').style.transform = 'scale(1.02');
-            
-            setTimeout(() => {
-                if (this.closest('.discount-option')) {
-                    this.closest('.discount-option').style.transform = 'scale(1)';
-                }
-            }, 200);
-        });
-    });
-    
-   // تحديث الحقول المخفية يدوياً
-function updateHiddenFields(percent, points) {
-    document.getElementById('discount_percent_input').value = percent;
-    document.getElementById('points_to_use_input').value = points;
-}
-
-// عند اختيار أي خيار
-document.querySelectorAll('input[name="discount_option"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        let percent = parseInt(this.value);
-        let points = parseInt(this.dataset.points);
-        updateHiddenFields(percent, points);
-    });
-});
-
-// تحديد الخيار الأول افتراضياً
-const checkedRadio = document.querySelector('input[name="discount_option"]:checked');
-if (checkedRadio) {
-    let percent = parseInt(checkedRadio.value);
-    let points = parseInt(checkedRadio.dataset.points);
-    updateHiddenFields(percent, points);
-} else {
-    // إذا ما في خيار محدد، حددي "بدون خصم"
-    const noDiscount = document.querySelector('input[name="discount_option"][value="0"]');
-    if (noDiscount) {
-        noDiscount.checked = true;
-        updateHiddenFields(0, 0);
-    }
-}
+    // فقط للتأكد (اختياري)
+    console.log('Discount Percent:', document.getElementById('discount_percent_input')?.value);
+    console.log('Points to Use:', document.getElementById('points_to_use_input')?.value);
 </script>
 
 @endsection

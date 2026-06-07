@@ -17,7 +17,7 @@ class BookingController extends Controller
     // ================= Dashboard =================
     public function dashboard()
     {
-        // 🔥 تحديث حجوزات إزالة الرموش المنتهية تلقائياً
+        //  تحديث حجوزات إزالة الرموش المنتهية تلقائياً
         $this->autoCompleteRemovalBookings();
         
         $user = auth()->user();
@@ -292,8 +292,8 @@ class BookingController extends Controller
         }
     }
 
-    // ================= STORE =================
-    public function store(Request $request)
+   // ================= STORE =================
+public function store(Request $request)
 {
     $data = session('booking');
 
@@ -303,8 +303,6 @@ class BookingController extends Controller
     }
 
     $user = auth()->user();
-
-    
 
     $services = ['classic' => 30, 'wet' => 40, 'wispy' => 50, 'volume' => 45, 'anime' => 55];
     $originalPrice = $services[$data['service_type']] ?? 0;
@@ -328,25 +326,21 @@ class BookingController extends Controller
         $basePrice += 10;
     }
 
-    //  حساب الخصم
-   $discountAmount = 0;
-
-$discountPercent = (int) $request->input('discount_percent', 0);
-$pointsToUse = (int) $request->input('points_to_use', 0);
-
-if ($discountPercent > 0 && $pointsToUse > 0) {
-
-    $discountAmount = $basePrice * ($discountPercent / 100);
-
-    if ($discountAmount > $basePrice) {
-        $discountAmount = $basePrice;
+    // ========== الخصم التلقائي  ==========
+    $discountAmount = 0;
+    
+    // تطبيق الخصم تلقائياً إذا كان الرصيد 50 نقطة أو أكثر
+    if ($user->points >= 50) {
+        $discountAmount = $basePrice * 0.15; // خصم 15%
+        
+        // خصم 50 نقطة من رصيد العميلة
+        $user->deductPoints(50);
+        
+        // تحديث بيانات المستخدم بعد الخصم
+        $user->refresh();
     }
 
-    $user->deductPoints($pointsToUse);
-}
-
     $finalPrice = $basePrice - $discountAmount;
-    
     if ($finalPrice < 0) $finalPrice = 0;
 
     $booking = Booking::create([
@@ -385,7 +379,6 @@ if ($discountPercent > 0 && $pointsToUse > 0) {
 
     return redirect()->route('customer.bookings.show', $booking->id)
         ->with('success', 'تم حجز موعدك بنجاح! 🎉');
-        
 }
 
 // ================= إكمال الحجز (للموظفة/الأدمن) =================
@@ -483,23 +476,41 @@ public function completeBooking($id)
     }
 
     public function cancel($id)
-    {
-        $booking = Booking::findOrFail($id);
-        $user = auth()->user();
+{
+    $booking = Booking::findOrFail($id);
+    $user = auth()->user();
 
-        if ($booking->user_id != $user->id) {
-            abort(403);
-        }
-        
-        if ($booking->booking_date < today()) {
-            return back()->with('error', '❌ لا يمكن إلغاء حجز بتاريخ مضى');
-        }
-        
-        $booking->update(['status' => 'cancelled']);
-        
+    // السماح للموظفة والمالك والزبونة بالإلغاء
+    if ($booking->user_id != $user->id && !in_array($user->role, ['staff', 'owner'])) {
+        abort(403);
+    }
+    
+    if ($booking->booking_date < today()) {
+        return back()->with('error', '❌ لا يمكن إلغاء حجز بتاريخ مضى');
+    }
+    
+    $wasConfirmed = $booking->status === 'confirmed';
+    $booking->update(['status' => 'cancelled']);
+    
+    // إذا كان الملغي هو الموظفة أو المالك، أرسل إشعار للعميلة
+    if (in_array($user->role, ['staff', 'owner']) && $wasConfirmed) {
+        $this->sendCancellationNotification($booking);
+    }
+    
+    // إذا كانت العميلة  هي اللي ألغت
+    if ($booking->user_id == $user->id) {
         return redirect()->route('customer.bookings.index')
             ->with('success', '✅ تم إلغاء الحجز بنجاح');
     }
+    
+    // إذا كانت الموظفة أو المالك
+    if (in_array($user->role, ['staff', 'owner'])) {
+        return redirect()->route('staff.bookings')
+            ->with('warning', '✅ تم إلغاء الحجز وتم إشعار الزبونة');
+    }
+    
+    return back()->with('success', '✅ تم إلغاء الحجز بنجاح');
+}
 
     // ================= QUEUE SYSTEM =================
     public function showQueueForm()
@@ -683,4 +694,19 @@ public function completeBooking($id)
             $position++;
         }
     }
+    // ================= إرسال إشعار عند إلغاء الحجز =================
+private function sendCancellationNotification($booking)
+{
+    // حفظ الإشعار في قاعدة البيانات
+    \App\Models\Notification::create([
+        'owner_id' => $booking->user_id,
+        'type' => 'booking_cancelled',
+        'title' => '❌ تم إلغاء حجزك',
+        'message' => "تم إلغاء حجزك للخدمة {$booking->service_type} بتاريخ {$booking->booking_date} الساعة {$booking->booking_time}. عذراً للإزعاج، يمكنك حجز موعد آخر مناسب.",
+        'is_read' => false,
+    ]);
+    
+    //  إرسال إيميل للعميلة
+    Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
+}
 }

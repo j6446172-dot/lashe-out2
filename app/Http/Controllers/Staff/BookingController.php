@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Staff;
 
+use App\Models\Notification;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Mail\BookingCancelledMail;
+use Illuminate\Support\Facades\Mail;
 
 class BookingController extends Controller
 {
@@ -98,46 +101,67 @@ class BookingController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-    {
-        $booking = Booking::findOrFail($id);
-        
-        // ✅ منع تعديل حالة حجوزات إزالة الرموش
-        if ($booking->service_type == 'removal') {
-            return redirect()->route('staff.bookings')->with('error', '❌ لا يمكن تعديل حالة حجوزات إزالة الرموش، تتم تلقائياً');
-        }
-        
-        $validated = $request->validate([
-            'status' => 'required|in:completed,cancelled'
-        ]);
-        
-        $booking->status = $validated['status'];
-        $booking->save();
-        
-        if ($validated['status'] == 'completed') {
-            $userId = $booking->user_id;
-            
-            $check = DB::table('loyalty_points')
-                ->where('user_id', $userId)
-                ->first();
-            
-            if ($check) {
-                DB::table('loyalty_points')
-                    ->where('user_id', $userId)
-                    ->increment('points', 10);
-            } else {
-                DB::table('loyalty_points')->insert([
-                    'user_id' => $userId,
-                    'points' => 10,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-        
-        $message = $validated['status'] == 'completed' 
-            ? '✨ تم إكمال الخدمة بنجاح!' 
-            : '❌ تم إلغاء الحجز!';
-        
-        return redirect()->route('staff.bookings')->with('success', $message);
+{
+    $booking = Booking::findOrFail($id);
+    
+    // منع تعديل حالة حجوزات إزالة الرموش
+    if ($booking->service_type == 'removal') {
+        return redirect()->route('staff.bookings')->with('error', '❌ لا يمكن تعديل حالة حجوزات إزالة الرموش، تتم تلقائياً');
     }
+    
+    $validated = $request->validate([
+        'status' => 'required|in:completed,cancelled'
+    ]);
+    
+    $oldStatus = $booking->status;
+    $booking->status = $validated['status'];
+    $booking->save();
+    
+    // 🔥 إذا تم الإلغاء، أرسل إشعار للعميلة
+    if ($validated['status'] == 'cancelled' && $oldStatus != 'cancelled') {
+        $this->sendCancellationNotification($booking);
+    }
+    
+    // إذا تم الإكمال، أضف نقاط
+    if ($validated['status'] == 'completed') {
+        $userId = $booking->user_id;
+        
+        $check = DB::table('loyalty_points')
+            ->where('user_id', $userId)
+            ->first();
+        
+        if ($check) {
+            DB::table('loyalty_points')
+                ->where('user_id', $userId)
+                ->increment('points', 10);
+        } else {
+            DB::table('loyalty_points')->insert([
+                'user_id' => $userId,
+                'points' => 10,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+    
+    $message = $validated['status'] == 'completed' 
+        ? '✨ تم إكمال الخدمة بنجاح!' 
+        : '❌ تم إلغاء الحجز وتم إشعار العميلة!';
+    
+    return redirect()->route('staff.bookings')->with('success', $message);
+}
+ private function sendCancellationNotification($booking)
+{
+    // حفظ الإشعار في قاعدة البيانات
+    Notification::create([
+        'owner_id' => $booking->user_id,
+        'type' => 'booking_cancelled',
+        'title' => '❌ تم إلغاء حجزك',
+        'message' => "تم إلغاء حجزك للخدمة {$booking->service_type} بتاريخ {$booking->booking_date} الساعة {$booking->booking_time}. عذراً للإزعاج، يمكنك حجز موعد آخر مناسب.",
+        'is_read' => false,
+    ]);
+    
+    //  إرسال إيميل للعميلة 
+    Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
+}
 }
