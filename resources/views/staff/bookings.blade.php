@@ -401,9 +401,24 @@
         localStorage.setItem('selectedBookingSection', section);
     }
     
-    // دائماً افتح القسم القادمة عند تحميل الصفحة
+    // عند تحميل الصفحة، اقرأ القسم من URL أو localStorage
     document.addEventListener('DOMContentLoaded', function() {
-        showSection('upcoming');
+        // محاولة قراءة القسم من URL أولاً
+        const urlParams = new URLSearchParams(window.location.search);
+        let section = urlParams.get('section');
+        
+        // إذا لم يوجد في URL، جرب localStorage
+        if (!section) {
+            section = localStorage.getItem('selectedBookingSection');
+        }
+        
+        // إذا مازال لا يوجد، استخدم 'upcoming' كقيمة افتراضية
+        if (!section) {
+            section = 'upcoming';
+        }
+        
+        // إظهار القسم الصحيح
+        showSection(section);
     });
 </script>
 @endsection

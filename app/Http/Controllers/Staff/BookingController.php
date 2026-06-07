@@ -20,10 +20,11 @@ class BookingController extends Controller
         $pastFilter = $request->get('past_filter', 'all');
         $cancelledFilter = $request->get('cancelled_filter', 'all');
         
-        // ========== 1. القادمة (confirmed فقط) ==========
+        // ========== 1. القادمة (confirmed فقط) - استبعاد removal ==========
         $upcomingQuery = Booking::with('user')
             ->where('staff_id', $staffId)
-            ->where('status', 'confirmed');  // فقط confirmed
+            ->where('status', 'confirmed')
+            ->where('service_type', '!=', 'removal');  // ✅ منع ظهور خدمة إزالة الرموش
         
         // تطبيق الفلتر حسب التاريخ
         switch ($upcomingFilter) {
@@ -42,10 +43,11 @@ class BookingController extends Controller
             ->orderBy('booking_time', 'asc')
             ->get();
         
-        // ========== 2. السابقة (completed فقط) ==========
+        // ========== 2. السابقة (completed فقط) - استبعاد removal ==========
         $pastQuery = Booking::with('user')
             ->where('staff_id', $staffId)
-            ->where('status', 'completed');
+            ->where('status', 'completed')
+            ->where('service_type', '!=', 'removal');  // ✅ منع ظهور خدمة إزالة الرموش
         
         switch ($pastFilter) {
             case 'today':
@@ -63,10 +65,11 @@ class BookingController extends Controller
             ->orderBy('booking_time', 'desc')
             ->get();
         
-        // ========== 3. الملغية (cancelled فقط) ==========
+        // ========== 3. الملغية (cancelled فقط) - استبعاد removal ==========
         $cancelledQuery = Booking::with('user')
             ->where('staff_id', $staffId)
-            ->where('status', 'cancelled');
+            ->where('status', 'cancelled')
+            ->where('service_type', '!=', 'removal');  // ✅ منع ظهور خدمة إزالة الرموش
         
         switch ($cancelledFilter) {
             case 'today':
@@ -98,37 +101,38 @@ class BookingController extends Controller
     {
         $booking = Booking::findOrFail($id);
         
+        // ✅ منع تعديل حالة حجوزات إزالة الرموش
+        if ($booking->service_type == 'removal') {
+            return redirect()->route('staff.bookings')->with('error', '❌ لا يمكن تعديل حالة حجوزات إزالة الرموش، تتم تلقائياً');
+        }
+        
         $validated = $request->validate([
-            'status' => 'required|in:completed,cancelled'  // فقط completed و cancelled
+            'status' => 'required|in:completed,cancelled'
         ]);
         
         $booking->status = $validated['status'];
         $booking->save();
         
         if ($validated['status'] == 'completed') {
-
-    $userId = $booking->user_id;
-
-    $check = \DB::table('loyalty_points')
-        ->where('user_id', $userId)
-        ->first();
-
-    if ($check) {
-
-        \DB::table('loyalty_points')
-            ->where('user_id', $userId)
-            ->increment('points', 10);
-
-    } else {
-
-        \DB::table('loyalty_points')->insert([
-            'user_id' => $userId,
-            'points' => 10,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
-}
+            $userId = $booking->user_id;
+            
+            $check = DB::table('loyalty_points')
+                ->where('user_id', $userId)
+                ->first();
+            
+            if ($check) {
+                DB::table('loyalty_points')
+                    ->where('user_id', $userId)
+                    ->increment('points', 10);
+            } else {
+                DB::table('loyalty_points')->insert([
+                    'user_id' => $userId,
+                    'points' => 10,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
         
         $message = $validated['status'] == 'completed' 
             ? '✨ تم إكمال الخدمة بنجاح!' 
