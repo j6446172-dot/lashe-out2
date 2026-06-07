@@ -78,7 +78,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1100px]">
+                <table class="w-full min-w-[1200px]">
                     <thead>
                         <tr style="border-bottom: 2px solid #B08D57;">
                             <th class="p-3 text-right">التاريخ</th>
@@ -88,7 +88,7 @@
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
-                            <th class="p-3 text-right" style="min-width: 200px;">📍 العنوان التفصيلي</th>
+                            <th class="p-3 text-right" style="min-width: 280px;">📍 العنوان</th>
                             <th class="p-3 text-right">الحالة</th>
                             <th class="p-3 text-right">إجراء</th>
                         </tr>
@@ -115,33 +115,63 @@
                             </td>
                             <td class="p-3">
                                 @if($booking->location == 'home')
-                                    @if($booking->address_text || $booking->building_number || $booking->apartment)
-                                        <div class="text-sm" style="color: #2B1E1A;">
-                                            @if($booking->address_text)
-                                                <div class="mb-1">{{ Str::limit($booking->address_text, 60) }}</div>
-                                            @endif
-                                            @if($booking->building_number)
-                                                <span class="text-xs" style="color: #7C8574;">🏢 بناية: {{ $booking->building_number }}</span>
-                                            @endif
-                                            @if($booking->apartment)
-                                                <span class="text-xs mr-2" style="color: #7C8574;">🏠 شقة: {{ $booking->apartment }}</span>
-                                            @endif
-                                            @if($booking->latitude && $booking->longitude)
-                                                <div class="mt-1">
-                                                    <a href="https://www.google.com/maps?q={{ $booking->latitude }},{{ $booking->longitude }}" 
-                                                       target="_blank"
-                                                       class="text-xs font-bold hover:underline inline-flex items-center gap-1"
-                                                       style="color: #B08D57;">
-                                                        <i class="fas fa-map-marker-alt"></i> فتح الموقع
-                                                    </a>
-                                                </div>
-                                            @endif
+                                    {{-- زر إظهار الموقع --}}
+                                    <button onclick="toggleLocation({{ $booking->id }})" 
+                                            class="show-location-btn-{{ $booking->id }} text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                                            style="background: #B08D57; color: white;">
+                                        📍 إظهار الموقع
+                                    </button>
+                                    
+                                    {{-- تفاصيل الموقع المخفية --}}
+                                    <div id="location-details-{{ $booking->id }}" 
+                                         class="location-details hidden mt-2 p-3 rounded-lg text-right"
+                                         style="background: rgba(176, 141, 87, 0.1); border-right: 3px solid #B08D57;">
+                                        
+                                        <div class="mb-2">
+                                            <i class="fas fa-location-dot ml-1" style="color: #B08D57;"></i>
+                                            <strong>العنوان:</strong>
+                                            <div class="mt-1 text-sm" style="color: #2B1E1A;">
+                                                {{ $booking->address_text ? Str::limit($booking->address_text, 100) : 'لم يتم إضافة عنوان' }}
+                                            </div>
                                         </div>
-                                    @else
-                                        <span class="text-xs text-gray-400">لم يتم إضافة عنوان</span>
-                                    @endif
+                                        
+                                        @if($booking->building_number || $booking->apartment)
+                                            <div class="flex flex-wrap gap-2 mb-2">
+                                                @if($booking->building_number)
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.15); color: #5d4e32;">
+                                                        🏢 بناية: {{ $booking->building_number }}
+                                                    </span>
+                                                @endif
+                                                @if($booking->apartment)
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.15); color: #5d4e32;">
+                                                        🏠 شقة: {{ $booking->apartment }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        
+                                        @if($booking->latitude && $booking->longitude)
+                                            <div class="mt-2">
+                                                <a href="https://www.google.com/maps?q={{ $booking->latitude }},{{ $booking->longitude }}" 
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                                                   style="background: #2196F3; color: white;">
+                                                    <i class="fas fa-map-marker-alt"></i> فتح الموقع على الخريطة
+                                                </a>
+                                            </div>
+                                            <div class="mt-1 text-[10px]" style="color: #999;">
+                                                📍 {{ number_format($booking->latitude, 6) }}, {{ number_format($booking->longitude, 6) }}
+                                            </div>
+                                        @else
+                                            <div class="mt-2 text-xs" style="color: #f44336;">
+                                                <i class="fas fa-exclamation-triangle"></i> لا توجد إحداثيات للموقع
+                                            </div>
+                                        @endif
+                                    </div>
                                 @else
-                                    <span class="text-xs text-gray-400">—</span>
+                                    <span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+                                        <i class="fas fa-building"></i> العنوان: العبدلي - مجمع لاش أوت
+                                    </span>
                                 @endif
                             </td>
                             <td class="p-3">
@@ -157,7 +187,6 @@
                                             ✨ مكتمل
                                         </button>
                                     </form>
-                                    
                                     <form action="{{ route('staff.booking.update-status', $booking->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PUT')
@@ -208,7 +237,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1100px]">
+                <table class="w-full min-w-[1200px]">
                     <thead>
                         <tr style="border-bottom: 2px solid #B08D57;">
                             <th class="p-3 text-right">التاريخ</th>
@@ -218,7 +247,7 @@
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
-                            <th class="p-3 text-right" style="min-width: 200px;">📍 العنوان التفصيلي</th>
+                            <th class="p-3 text-right" style="min-width: 280px;">📍 العنوان</th>
                             <th class="p-3 text-right">الحالة</th>
                             <th class="p-3 text-right"></th>
                         </tr>
@@ -245,29 +274,53 @@
                             </td>
                             <td class="p-3">
                                 @if($booking->location == 'home')
-                                    @if($booking->address_text || $booking->building_number || $booking->apartment)
-                                        <div class="text-sm" style="color: #2B1E1A;">
-                                            @if($booking->address_text)
-                                                <div class="mb-1">{{ Str::limit($booking->address_text, 60) }}</div>
-                                            @endif
-                                            @if($booking->building_number)
-                                                <span class="text-xs" style="color: #7C8574;">🏢 بناية: {{ $booking->building_number }}</span>
-                                            @endif
-                                            @if($booking->apartment)
-                                                <span class="text-xs mr-2" style="color: #7C8574;">🏠 شقة: {{ $booking->apartment }}</span>
-                                            @endif
+                                    <button onclick="toggleLocation({{ $booking->id }})" 
+                                            class="show-location-btn-{{ $booking->id }} text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                                            style="background: #B08D57; color: white;">
+                                        📍 إظهار الموقع
+                                    </button>
+                                    <div id="location-details-{{ $booking->id }}" 
+                                         class="location-details hidden mt-2 p-3 rounded-lg text-right"
+                                         style="background: rgba(176, 141, 87, 0.1); border-right: 3px solid #B08D57;">
+                                        <div class="mb-2">
+                                            <i class="fas fa-location-dot ml-1" style="color: #B08D57;"></i>
+                                            <strong>العنوان:</strong>
+                                            <div class="mt-1 text-sm" style="color: #2B1E1A;">
+                                                {{ $booking->address_text ? Str::limit($booking->address_text, 100) : 'لم يتم إضافة عنوان' }}
+                                            </div>
                                         </div>
-                                    @else
-                                        <span class="text-xs text-gray-400">لم يتم إضافة عنوان</span>
-                                    @endif
+                                        @if($booking->building_number || $booking->apartment)
+                                            <div class="flex flex-wrap gap-2 mb-2">
+                                                @if($booking->building_number)
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.15); color: #5d4e32;">🏢 بناية: {{ $booking->building_number }}</span>
+                                                @endif
+                                                @if($booking->apartment)
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.15); color: #5d4e32;">🏠 شقة: {{ $booking->apartment }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if($booking->latitude && $booking->longitude)
+                                            <div class="mt-2">
+                                                <a href="https://www.google.com/maps?q={{ $booking->latitude }},{{ $booking->longitude }}" 
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                                                   style="background: #2196F3; color: white;">
+                                                    <i class="fas fa-map-marker-alt"></i> فتح الموقع
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
                                 @else
-                                    <span class="text-xs text-gray-400">—</span>
+                                    <span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+                                        <i class="fas fa-building"></i> في الصالون
+                                    </span>
                                 @endif
                             </td>
                             <td class="p-3">
                                 <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">✓ مكتمل</span>
                             </td>
-                            <td class="p-3"></td>
+                            <td class="p-3">–
+                            </td>
                         </tr>
                         @empty
                         <tr>
@@ -308,7 +361,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1100px]">
+                <table class="w-full min-w-[1200px]">
                     <thead>
                         <tr style="border-bottom: 2px solid #B08D57;">
                             <th class="p-3 text-right">التاريخ</th>
@@ -318,7 +371,7 @@
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
-                            <th class="p-3 text-right" style="min-width: 200px;">📍 العنوان التفصيلي</th>
+                            <th class="p-3 text-right" style="min-width: 280px;">📍 العنوان</th>
                             <th class="p-3 text-right">الحالة</th>
                             <th class="p-3 text-right"></th>
                          </tr>
@@ -345,29 +398,53 @@
                             </td>
                             <td class="p-3">
                                 @if($booking->location == 'home')
-                                    @if($booking->address_text || $booking->building_number || $booking->apartment)
-                                        <div class="text-sm" style="color: #2B1E1A;">
-                                            @if($booking->address_text)
-                                                <div class="mb-1">{{ Str::limit($booking->address_text, 60) }}</div>
-                                            @endif
-                                            @if($booking->building_number)
-                                                <span class="text-xs" style="color: #7C8574;">🏢 بناية: {{ $booking->building_number }}</span>
-                                            @endif
-                                            @if($booking->apartment)
-                                                <span class="text-xs mr-2" style="color: #7C8574;">🏠 شقة: {{ $booking->apartment }}</span>
-                                            @endif
+                                    <button onclick="toggleLocation({{ $booking->id }})" 
+                                            class="show-location-btn-{{ $booking->id }} text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                                            style="background: #B08D57; color: white;">
+                                        📍 إظهار الموقع
+                                    </button>
+                                    <div id="location-details-{{ $booking->id }}" 
+                                         class="location-details hidden mt-2 p-3 rounded-lg text-right"
+                                         style="background: rgba(176, 141, 87, 0.1); border-right: 3px solid #B08D57;">
+                                        <div class="mb-2">
+                                            <i class="fas fa-location-dot ml-1" style="color: #B08D57;"></i>
+                                            <strong>العنوان:</strong>
+                                            <div class="mt-1 text-sm" style="color: #2B1E1A;">
+                                                {{ $booking->address_text ? Str::limit($booking->address_text, 100) : 'لم يتم إضافة عنوان' }}
+                                            </div>
                                         </div>
-                                    @else
-                                        <span class="text-xs text-gray-400">لم يتم إضافة عنوان</span>
-                                    @endif
+                                        @if($booking->building_number || $booking->apartment)
+                                            <div class="flex flex-wrap gap-2 mb-2">
+                                                @if($booking->building_number)
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.15); color: #5d4e32;">🏢 بناية: {{ $booking->building_number }}</span>
+                                                @endif
+                                                @if($booking->apartment)
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full" style="background: rgba(176, 141, 87, 0.15); color: #5d4e32;">🏠 شقة: {{ $booking->apartment }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if($booking->latitude && $booking->longitude)
+                                            <div class="mt-2">
+                                                <a href="https://www.google.com/maps?q={{ $booking->latitude }},{{ $booking->longitude }}" 
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                                                   style="background: #2196F3; color: white;">
+                                                    <i class="fas fa-map-marker-alt"></i> فتح الموقع
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
                                 @else
-                                    <span class="text-xs text-gray-400">—</span>
+                                    <span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full" style="background: rgba(176, 141, 87, 0.1); color: #B08D57;">
+                                        <i class="fas fa-building"></i> في الصالون
+                                    </span>
                                 @endif
                             </td>
                             <td class="p-3">
                                 <span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">✗ ملغي</span>
                             </td>
-                            <td class="p-3"></td>
+                            <td class="p-3">–
+                            </td>
                         </tr>
                         @empty
                         <tr>
@@ -385,9 +462,20 @@
     </div>
 </div>
 
+<style>
+    .hidden {
+        display: none;
+    }
+    .block {
+        display: block;
+    }
+    .location-details {
+        transition: all 0.3s ease;
+    }
+</style>
+
 <script>
     function showSection(section) {
-        // إخفاء جميع الأقسام
         const upcoming = document.getElementById('section-upcoming');
         const past = document.getElementById('section-past');
         const cancelled = document.getElementById('section-cancelled');
@@ -396,11 +484,9 @@
         if (past) past.style.display = 'none';
         if (cancelled) cancelled.style.display = 'none';
         
-        // إظهار القسم المطلوب
         const activeSection = document.getElementById('section-' + section);
         if (activeSection) activeSection.style.display = 'block';
         
-        // تغيير شكل الأزرار
         const btnUpcoming = document.getElementById('btn-upcoming');
         const btnPast = document.getElementById('btn-past');
         const btnCancelled = document.getElementById('btn-cancelled');
@@ -424,27 +510,37 @@
             btnCancelled.style.background = '#B08D57';
         }
         
-        // حفظ القسم المختار
         localStorage.setItem('selectedBookingSection', section);
     }
     
-    // عند تحميل الصفحة، اقرأ القسم من URL أو localStorage
+    // دالة إظهار/إخفاء تفاصيل الموقع
+    function toggleLocation(bookingId) {
+        const detailsDiv = document.getElementById('location-details-' + bookingId);
+        const btn = document.querySelector('.show-location-btn-' + bookingId);
+        
+        if (detailsDiv.classList.contains('hidden')) {
+            detailsDiv.classList.remove('hidden');
+            detailsDiv.classList.add('block');
+            btn.innerHTML = '📍 إخفاء الموقع';
+            btn.style.background = '#6c5ce7';
+        } else {
+            detailsDiv.classList.add('hidden');
+            detailsDiv.classList.remove('block');
+            btn.innerHTML = '📍 إظهار الموقع';
+            btn.style.background = '#B08D57';
+        }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
-        // محاولة قراءة القسم من URL أولاً
         const urlParams = new URLSearchParams(window.location.search);
         let section = urlParams.get('section');
         
-        // إذا لم يوجد في URL، جرب localStorage
         if (!section) {
             section = localStorage.getItem('selectedBookingSection');
         }
-        
-        // إذا مازال لا يوجد، استخدم 'upcoming' كقيمة افتراضية
         if (!section) {
             section = 'upcoming';
         }
-        
-        // إظهار القسم الصحيح
         showSection(section);
     });
 </script>
