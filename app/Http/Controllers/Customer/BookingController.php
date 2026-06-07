@@ -304,6 +304,8 @@ class BookingController extends Controller
 
     $user = auth()->user();
 
+    
+
     $services = ['classic' => 30, 'wet' => 40, 'wispy' => 50, 'volume' => 45, 'anime' => 55];
     $originalPrice = $services[$data['service_type']] ?? 0;
 
@@ -327,12 +329,21 @@ class BookingController extends Controller
     }
 
     //  حساب الخصم
-    $discountAmount = 0;
-    $useDiscount = $request->input('use_discount', 0);
-    
-    if ($useDiscount && $user->isEligibleForDiscount()) {
-        $discountAmount = $user->applyDiscount($basePrice); //  تمرير $basePrice
+   $discountAmount = 0;
+
+$discountPercent = (int) $request->input('discount_percent', 0);
+$pointsToUse = (int) $request->input('points_to_use', 0);
+
+if ($discountPercent > 0 && $pointsToUse > 0) {
+
+    $discountAmount = $basePrice * ($discountPercent / 100);
+
+    if ($discountAmount > $basePrice) {
+        $discountAmount = $basePrice;
     }
+
+    $user->deductPoints($pointsToUse);
+}
 
     $finalPrice = $basePrice - $discountAmount;
     
@@ -374,6 +385,7 @@ class BookingController extends Controller
 
     return redirect()->route('customer.bookings.show', $booking->id)
         ->with('success', 'تم حجز موعدك بنجاح! 🎉');
+        
 }
 
 // ================= إكمال الحجز (للموظفة/الأدمن) =================

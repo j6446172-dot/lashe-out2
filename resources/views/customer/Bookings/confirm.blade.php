@@ -306,12 +306,35 @@
         });
     });
     
-    // تحديد الخيار الأول افتراضياً
-    const checkedRadio = document.querySelector('input[name="discount_option"]:checked');
-    if (checkedRadio) {
-        const event = new Event('change');
-        checkedRadio.dispatchEvent(event);
+   // تحديث الحقول المخفية يدوياً
+function updateHiddenFields(percent, points) {
+    document.getElementById('discount_percent_input').value = percent;
+    document.getElementById('points_to_use_input').value = points;
+}
+
+// عند اختيار أي خيار
+document.querySelectorAll('input[name="discount_option"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        let percent = parseInt(this.value);
+        let points = parseInt(this.dataset.points);
+        updateHiddenFields(percent, points);
+    });
+});
+
+// تحديد الخيار الأول افتراضياً
+const checkedRadio = document.querySelector('input[name="discount_option"]:checked');
+if (checkedRadio) {
+    let percent = parseInt(checkedRadio.value);
+    let points = parseInt(checkedRadio.dataset.points);
+    updateHiddenFields(percent, points);
+} else {
+    // إذا ما في خيار محدد، حددي "بدون خصم"
+    const noDiscount = document.querySelector('input[name="discount_option"][value="0"]');
+    if (noDiscount) {
+        noDiscount.checked = true;
+        updateHiddenFields(0, 0);
     }
+}
 </script>
 
 @endsection
