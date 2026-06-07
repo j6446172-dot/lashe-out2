@@ -107,7 +107,7 @@ class BookingController extends Controller
         }
         
         $validated = $request->validate([
-            'status' => 'required|in:completed,cancelled'
+            'status' => 'required|in:completed,cancellgit inited'
         ]);
         
         $booking->status = $validated['status'];
