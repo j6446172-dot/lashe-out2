@@ -14,6 +14,15 @@
                 </div>
             </div>
         @endif
+        
+        @if(session('error'))
+            <div class="rounded-xl p-4 mb-6 shadow-md" style="background: #f44336; color: white;">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            </div>
+        @endif
 
         <div class="rounded-2xl p-6 mb-6 shadow-md" style="background: linear-gradient(135deg, #B08D57, #9a7848);">
             <div class="flex justify-between items-center">
@@ -69,12 +78,13 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1000px]">
+                <table class="w-full min-w-[1100px]">
                     <thead>
                         <tr style="border-bottom: 2px solid #B08D57;">
                             <th class="p-3 text-right">التاريخ</th>
                             <th class="p-3 text-right">الوقت</th>
                             <th class="p-3 text-right">الزبونة</th>
+                            <th class="p-3 text-right">رقم التليفون</th>
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
@@ -89,6 +99,11 @@
                             <td class="p-3">{{ $booking->booking_date }}</td>
                             <td class="p-3">{{ $booking->booking_time }}</td>
                             <td class="p-3">{{ $booking->user->name ?? 'زبونة' }}</td>
+                            <td class="p-3">
+                                <a href="tel:{{ $booking->user->phone }}" class="hover:underline" style="color: #2196F3;">
+                                    📞 {{ $booking->user->phone ?? '—' }}
+                                </a>
+                            </td>
                             <td class="p-3">{{ $booking->service_type ?? 'خدمة' }}</td>
                             <td class="p-3">{{ $booking->price ? number_format($booking->price) . ' ج.م' : '—' }}</td>
                             <td class="p-3">
@@ -156,7 +171,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center p-8 text-gray-500">
+                            <td colspan="10" class="text-center p-8 text-gray-500">
                                 <i class="fas fa-calendar-check text-4xl mb-2 block"></i>
                                 لا توجد حجوزات قادمة
                             </td>
@@ -193,12 +208,13 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1000px]">
+                <table class="w-full min-w-[1100px]">
                     <thead>
                         <tr style="border-bottom: 2px solid #B08D57;">
                             <th class="p-3 text-right">التاريخ</th>
                             <th class="p-3 text-right">الوقت</th>
                             <th class="p-3 text-right">الزبونة</th>
+                            <th class="p-3 text-right">رقم التليفون</th>
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
@@ -213,6 +229,11 @@
                             <td class="p-3">{{ $booking->booking_date }}</td>
                             <td class="p-3">{{ $booking->booking_time }}</td>
                             <td class="p-3">{{ $booking->user->name ?? 'زبونة' }}</td>
+                            <td class="p-3">
+                                <a href="tel:{{ $booking->user->phone }}" class="hover:underline" style="color: #2196F3;">
+                                    📞 {{ $booking->user->phone ?? '—' }}
+                                </a>
+                            </td>
                             <td class="p-3">{{ $booking->service_type ?? 'خدمة' }}</td>
                             <td class="p-3">{{ $booking->price ? number_format($booking->price) . ' ج.م' : '—' }}</td>
                             <td class="p-3">
@@ -250,7 +271,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center p-8 text-gray-500">
+                            <td colspan="10" class="text-center p-8 text-gray-500">
                                 <i class="fas fa-check-circle text-4xl mb-2 block"></i>
                                 لا توجد حجوزات سابقة مكتملة
                             </td>
@@ -287,12 +308,13 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1000px]">
+                <table class="w-full min-w-[1100px]">
                     <thead>
                         <tr style="border-bottom: 2px solid #B08D57;">
                             <th class="p-3 text-right">التاريخ</th>
                             <th class="p-3 text-right">الوقت</th>
                             <th class="p-3 text-right">الزبونة</th>
+                            <th class="p-3 text-right">رقم التليفون</th>
                             <th class="p-3 text-right">الخدمة</th>
                             <th class="p-3 text-right">السعر</th>
                             <th class="p-3 text-right">الموقع</th>
@@ -307,6 +329,11 @@
                             <td class="p-3">{{ $booking->booking_date }}</td>
                             <td class="p-3">{{ $booking->booking_time }}</td>
                             <td class="p-3">{{ $booking->user->name ?? 'زبونة' }}</td>
+                            <td class="p-3">
+                                <a href="tel:{{ $booking->user->phone }}" class="hover:underline" style="color: #2196F3;">
+                                    📞 {{ $booking->user->phone ?? '—' }}
+                                </a>
+                            </td>
                             <td class="p-3">{{ $booking->service_type ?? 'خدمة' }}</td>
                             <td class="p-3">{{ $booking->price ? number_format($booking->price) . ' ج.م' : '—' }}</td>
                             <td class="p-3">
@@ -344,7 +371,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center p-8 text-gray-500">
+                            <td colspan="10" class="text-center p-8 text-gray-500">
                                 <i class="fas fa-ban text-4xl mb-2 block"></i>
                                 لا توجد حجوزات ملغية
                             </td>
