@@ -68,4 +68,13 @@ public function markAsRead(Request $request)
     ]);
 }
 
+public function markStaffMessagesAsRead($staffId)
+{
+    ChatMessage::where('from_user_id', $staffId)
+        ->where('to_user_id', Auth::id())
+        ->where('is_read', false)
+        ->update(['is_read' => true]);
+
+    return response()->json(['success' => true]);
+}
 }

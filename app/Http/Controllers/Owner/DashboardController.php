@@ -71,13 +71,14 @@ class DashboardController extends Controller
             ->where('is_read', false)
             ->count();
 
+
         return view('owner.dashboard', compact(
-            'totalCustomers', 'monthlyRevenue', 'netProfit', 'returnRate',
-            'averageRating', 'todayBookings', 'todayBookingsList', 'staffPerformance',
-            'salaries', 'materials', 'rent', 'chartMonths', 'chartRevenue',
-            'customerGrowthMonths', 'customerGrowthData', 'pendingLeaves',
-            'pendingLeavesCount', 'unreadStaffMessages'
-        ));
+    'totalCustomers', 'monthlyRevenue', 'netProfit', 'returnRate',
+    'averageRating', 'todayBookings', 'todayBookingsList', 'staffPerformance',
+    'salaries', 'materials', 'rent', 'chartMonths', 'chartRevenue',
+    'customerGrowthMonths', 'customerGrowthData', 'pendingLeaves',
+    'pendingLeavesCount', 'unreadStaffMessages'
+));
     }
     
     public function approveLeave(int $id)

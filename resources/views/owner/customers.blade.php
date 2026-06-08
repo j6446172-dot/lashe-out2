@@ -40,10 +40,6 @@
                 {{-- فلترة + زر العودة --}}
                 <div class="flex gap-3 mb-4 items-center">
                     <input type="text" placeholder="🔍 بحث..." class="px-4 py-2.5 rounded-xl flex-1" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                    <select class="px-4 py-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                        <option>الكل</option>
-                        <option>🏷️ VIP فقط</option>
-                    </select>
                     <a href="{{ route('owner.dashboard') }}" class="px-5 py-2.5 rounded-xl font-bold transition" style="background: rgba(176, 141, 87, 0.1); color: #B08D57; text-decoration: none;">← العودة</a>
                 </div>
 
@@ -59,7 +55,6 @@
                                 <th class="p-3">إجمالي الصرف</th>
                                 <th class="p-3">🎁 نقاط</th>
                                 <th class="p-3">تقييم</th>
-                                <th class="p-3">VIP</th>
                                 <th class="p-3">عرض</th>
                             </tr>
                         </thead>
@@ -73,7 +68,6 @@
                                 <td class="p-3" style="color: #7C8574;">{{ number_format($customer['total_spent']) }} د.أ</td>
                                 <td class="p-3 font-bold" style="color: #f59e0b;">🎁 {{ $customer['loyalty_points'] }}</td>
                                 <td class="p-3" style="color: #f59e0b;">⭐ {{ number_format($customer['rating'], 1) }}</td>
-                                <td class="p-3">{{ $customer['is_vip'] ? '🏷️' : '—' }}</td>
                                 <td class="p-3"><button onclick="showCustomerDetail({{ $customer['id'] }})" class="text-xl hover:scale-110 transition">👁️</button></td>
                             </tr>
                             @empty

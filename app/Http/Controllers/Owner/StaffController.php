@@ -14,7 +14,7 @@ use Carbon\Carbon;
 class StaffController extends Controller
 {
     /**
-     * 👩‍💼 صفحة الموظفات
+     *  صفحة الموظفات
      * 
      * تعرض قائمة الموظفات مع:
      * - إحصائيات (نشطات، في إجازة، متوسط التقييم)

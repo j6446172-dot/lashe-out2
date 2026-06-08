@@ -247,7 +247,7 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
     Route::post('/chat/send-to-staff', [App\Http\Controllers\Owner\ChatController::class, 'sendToStaff'])->name('chat.send');
     Route::get('/chat/unread-count', [App\Http\Controllers\Owner\ChatController::class, 'getUnreadCount'])->name('chat.unread-count');
     Route::post('/chat/mark-read', [App\Http\Controllers\Owner\ChatController::class, 'markAsRead'])->name('chat.mark-read');
-});
+});Route::post('/chat/mark-read/{staffId}', [App\Http\Controllers\Owner\ChatController::class, 'markStaffMessagesAsRead'])->name('chat.mark-read-staff');
 
 // ========== شات الموظف مع المالك ==========
 Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () {

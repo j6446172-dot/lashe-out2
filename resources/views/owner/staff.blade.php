@@ -237,6 +237,16 @@ function openChatWithStaff(staffId, staffName) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     loadStaffMessages(staffId);
+    
+    fetch('/owner/chat/mark-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ staff_id: staffId })
+    });
+
     if (staffChatInterval) clearInterval(staffChatInterval);
     staffChatInterval = setInterval(function(){ loadStaffMessages(currentStaffId); }, 3000);
 }
@@ -247,6 +257,7 @@ function closeStaffChat() {
     modal.classList.remove('flex');
     if (staffChatInterval) { clearInterval(staffChatInterval); staffChatInterval = null; }
     currentStaffId = null;
+    location.reload();
 }
 
 async function loadStaffMessages(staffId) {

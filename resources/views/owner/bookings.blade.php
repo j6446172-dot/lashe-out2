@@ -1,3 +1,4 @@
+```blade
 @extends('layouts.app')
 
 @section('content')
@@ -14,18 +15,14 @@
                 </div>
 
                 {{-- بطاقات --}}
-                <div class="grid grid-cols-6 gap-3 mb-6">
+                <div class="grid grid-cols-5 gap-3 mb-6">
                     <div class="rounded-xl p-4 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <p class="text-xs" style="color: #7C8574;">📋 الكل</p>
                         <p class="text-xl font-black mt-1" style="color: #B08D57;">{{ $totalBookings ?? 0 }}</p>
                     </div>
                     <div class="rounded-xl p-4 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                        <p class="text-xs" style="color: #7C8574;">✅ مؤكدة</p>
-                        <p class="text-xl font-black mt-1" style="color: #10b981;">{{ $confirmedCount ?? 0 }}</p>
-                    </div>
-                    <div class="rounded-xl p-4 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
-                        <p class="text-xs" style="color: #7C8574;">⏳ معلقة</p>
-                        <p class="text-xl font-black mt-1" style="color: #f59e0b;">{{ $pendingCount ?? 0 }}</p>
+                        <p class="text-xs" style="color: #7C8574;">✔️ مكتملة</p>
+                        <p class="text-xl font-black mt-1" style="color: #3b82f6;">{{ $allBookings->where('status', 'completed')->count() ?? 0 }}</p>
                     </div>
                     <div class="rounded-xl p-4 text-center" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);">
                         <p class="text-xs" style="color: #7C8574;">❌ ملغية</p>
@@ -46,8 +43,7 @@
                     <input type="text" id="searchInput" placeholder="🔍 بحث..." class="px-4 py-2.5 rounded-xl flex-1" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);" onkeyup="filterBookings()">
                     <select id="statusFilter" class="px-3 py-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);" onchange="filterBookings()">
                         <option value="">كل الحالات</option>
-                        <option value="confirmed">✅ مؤكد</option>
-                        <option value="pending">⏳ معلق</option>
+                        <option value="completed">✔️ مكتمل</option>
                         <option value="cancelled">❌ ملغي</option>
                     </select>
                     <select id="staffFilter" class="px-3 py-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(176, 141, 87, 0.15);" onchange="filterBookings()">
@@ -72,7 +68,7 @@
                             <tr style="border-bottom: 1px solid rgba(176, 141, 87, 0.1);">
                                 <td class="p-3 font-bold" style="color: #2B1E1A;">{{ $b->id }}</td>
                                 <td class="p-3" style="color: #2B1E1A;">{{ $b->user->name ?? '—' }}</td>
-                                <td class="p-3" style="color: #7C8574;">{{ $b->service ?? '—' }}</td>
+                                <td class="p-3" style="color: #7C8574;">{{ $b->service_type ?? $b->service ?? '—' }}</td>
                                 <td class="p-3" style="color: #7C8574;">{{ $b->staff->name ?? '—' }}</td>
                                 <td class="p-3" style="color: #7C8574;">{{ $b->booking_date ?? '—' }}</td>
                                 <td class="p-3" style="color: #7C8574;">{{ $b->booking_time ?? '—' }}</td>
@@ -80,10 +76,12 @@
                                 <td class="p-3">
                                     @if(($b->status ?? '') == 'confirmed')
                                     <span class="px-2 py-1 rounded-full text-xs font-bold" style="background: rgba(16, 185, 129, 0.15); color: #065f46;">✅ مؤكد</span>
-                                    @elseif(($b->status ?? '') == 'pending')
-                                    <span class="px-2 py-1 rounded-full text-xs font-bold" style="background: rgba(245, 158, 11, 0.15); color: #92400e;">⏳ معلق</span>
-                                    @else
+                                    @elseif(($b->status ?? '') == 'completed')
+                                    <span class="px-2 py-1 rounded-full text-xs font-bold" style="background: rgba(59, 130, 246, 0.15); color: #1e40af;">✔️ مكتمل</span>
+                                    @elseif(($b->status ?? '') == 'cancelled')
                                     <span class="px-2 py-1 rounded-full text-xs font-bold" style="background: rgba(239, 68, 68, 0.15); color: #991b1b;">❌ ملغي</span>
+                                    @else
+                                    <span class="px-2 py-1 rounded-full text-xs font-bold" style="background: rgba(245, 158, 11, 0.15); color: #92400e;">⏳ {{ $b->status ?? '—' }}</span>
                                     @endif
                                 </td>
                                 <td class="p-3"><button onclick="showDetail({{ $b->id }})" class="text-xl hover:scale-110 transition">👁️</button></td>
@@ -111,10 +109,11 @@
 </div>
 
 <script>
-function showDetail(id){document.getElementById('detailModal').classList.remove('hidden');document.getElementById('detailModal').classList.add('flex');document.getElementById('modalContent').innerHTML='<p class="text-center" style="color:#7C8574;">جاري التحميل...</p>';fetch(`/owner/booking-detail/${id}`).then(r=>r.json()).then(data=>{document.getElementById('modalContent').innerHTML=`<div class="mb-3"><strong>👤 العميلة:</strong> ${data.user?.name||'—'}</div><div class="mb-1" style="color:#666;">📧 ${data.user?.email||'—'}</div><div class="mb-3" style="color:#666;">📱 ${data.user?.phone||'—'}</div><div class="mb-3"><strong>💅 الخدمة:</strong> ${data.service||'—'} - ${data.price||0} د.أ</div><div class="mb-3"><strong>👩‍💼 الموظفة:</strong> ${data.staff?.name||'—'} ⭐ ${data.staff_rating||0}</div><div class="mb-1"><strong>📅 التاريخ:</strong> ${data.booking_date||'—'}</div><div class="mb-3"><strong>🕐 الوقت:</strong> ${data.booking_time||'—'}</div><div class="mb-3"><strong>📊 الحالة:</strong> ${data.status=='confirmed'?'✅ مؤكد':data.status=='pending'?'⏳ معلق':'❌ ملغي'}</div><div class="mb-3"><strong>📝 ملاحظات:</strong> ${data.notes||'لا توجد'}</div>`;});}
+function showDetail(id){document.getElementById('detailModal').classList.remove('hidden');document.getElementById('detailModal').classList.add('flex');document.getElementById('modalContent').innerHTML='<p class="text-center" style="color:#7C8574;">جاري التحميل...</p>';fetch(`/owner/booking-detail/${id}`).then(r=>r.json()).then(data=>{var s=data.status=='confirmed'?'✅ مؤكد':data.status=='completed'?'✔️ مكتمل':data.status=='cancelled'?'❌ ملغي':'⏳ '+data.status;document.getElementById('modalContent').innerHTML=`<div class="mb-3"><strong>👤 العميلة:</strong> ${data.user?.name||'—'}</div><div class="mb-1" style="color:#666;">📧 ${data.user?.email||'—'}</div><div class="mb-3" style="color:#666;">📱 ${data.user?.phone||'—'}</div><div class="mb-3"><strong>💅 الخدمة:</strong> ${data.service||'—'} - ${data.price||0} د.أ</div><div class="mb-3"><strong>👩‍💼 الموظفة:</strong> ${data.staff?.name||'—'} ⭐ ${data.staff_rating||0}</div><div class="mb-1"><strong>📅 التاريخ:</strong> ${data.booking_date||'—'}</div><div class="mb-3"><strong>🕐 الوقت:</strong> ${data.booking_time||'—'}</div><div class="mb-3"><strong>📊 الحالة:</strong> ${s}</div><div class="mb-3"><strong>📝 ملاحظات:</strong> ${data.notes||'لا توجد'}</div>`;});}
 function closeModal(){document.getElementById('detailModal').classList.add('hidden');document.getElementById('detailModal').classList.remove('flex');}
 document.getElementById('detailModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 function filterBookings(){const s=document.getElementById('searchInput')?.value||'',t=document.getElementById('statusFilter')?.value||'',f=document.getElementById('staffFilter')?.value||'';let u='{{ route("owner.bookings") }}?';if(s)u+='search='+encodeURIComponent(s)+'&';if(t)u+='status='+t+'&';if(f)u+='staff='+f;window.location.href=u;}
 document.addEventListener('DOMContentLoaded',function(){const p=new URLSearchParams(window.location.search);if(p.get('status'))document.getElementById('statusFilter').value=p.get('status');if(p.get('staff'))document.getElementById('staffFilter').value=p.get('staff');if(p.get('search'))document.getElementById('searchInput').value=p.get('search');});
 </script>
 @endsection
+```

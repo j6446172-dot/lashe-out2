@@ -37,7 +37,7 @@ class CustomerController extends Controller
                 'total_spent' => $b->where('status', 'confirmed')->sum('price'),
                 'loyalty_points' => $c->loyalty_points ?? 0,
                 'rating' => Review::where('user_id', $c->id)->avg('rating') ?? 0,
-                'is_vip' => ($c->loyalty_points ?? 0) >= 100 // VIP إذا نقاط الولاء ≥ 100
+                
             ];
         }
         return view('owner.customers', compact(
